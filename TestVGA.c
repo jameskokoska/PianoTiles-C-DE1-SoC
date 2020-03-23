@@ -1,3 +1,4 @@
+/*https://cpulator.01xz.net/?sys=arm-de1soc*/
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
