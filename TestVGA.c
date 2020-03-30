@@ -72,7 +72,7 @@ int main(void)
 }
 
 void draw_box(int x0, int y0, int short box_color){
-    int box_size = 6;
+    int box_size = 20;
     for(int x = x0-box_size/2; x <= x0+box_size/2; x++){
         for(int y = y0-box_size/2; y <= y0+box_size/2; y++){
             draw_pixel(x,y, box_color);
