@@ -3,18 +3,34 @@
 
 volatile int pixel_buffer_start; // global variable
 
+
 void swap(int *num1, int *num2);
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
 void wait_for_vsync();
 void draw_line(int x0, int y0, int x1, int y1, short int colour);
 void draw_tile(int x0, int y0);
+int* random_column();
+
+//generates a list from [0]->[99] of random numbers between 0-3
+int* random_column(){
+    static int array[100];
+    for (int i=0; i<100; i++){
+        array[i] = rand() % 4;
+        //printf("%d",array[i]);
+    }
+    return array;
+}
 
 int main(void) {
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
     int N = 4;
     int colour_box[N], dx_box[N], dy_box[N], x_box[N], y_box[N];
     short int colours[] = {0x001F, 0x07E0, 0xF800, 0xF81F, 0xFFFF, 0xFFE0, 0x07FF, 0x1234};
+
+    int* tiles_position = random_column();
+    
+    return;
 
     for (int i = 0; i < N; i++) {
         dx_box[i] = rand() % 2 * 2 - 1;
