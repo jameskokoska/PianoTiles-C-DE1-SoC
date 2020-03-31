@@ -17,7 +17,7 @@ int* random_column(){
     static int array[100];
     for (int i=0; i<100; i++){
         array[i] = rand() % 4;
-        //printf("%d",array[i]);
+        printf("%d",array[i]);
     }
     return array;
 }
@@ -47,31 +47,26 @@ int main(void) {
     *(pixel_ctrl_ptr + 1) = 0xC0000000;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
+    //Main game loop
     while (1) {
         clear_screen();
-
         for (int i = 0; i < N; i++) {
             //draws the tile in black
             draw_tile(x_box[i], y_box[i]);
             y_box[i] += dy_box[i];
-
         }
+        
+
     
         wait_for_vsync(); // swap front and back buffers on VGA vertical sync
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
-    }
-}
 
-//draws a box centered at coordinates
-void draw_box(int x0, int y0) {
-    int xsize = 40;
-    int ysize = 60;
-    for (int x = x0; x <= x0 + xsize; x++) {
-        for (int y = y0; y <= y0 + ysize; y++) {
-            plot_pixel(x, y, 0x0000);
+        if(y_box[N-1] >= 240){
+            y_box[N-1] = 0;
         }
     }
 }
+
 
 //draws the piano tile where specified in black, give start coordinates of top left
 //and ensure the size doesn't go off screen on the bottom
@@ -84,6 +79,18 @@ void draw_tile(int x0, int y0) {
 
     for (int x = x0; x <= xsize+x0 ; x++) {
         for (int y = y0; y <= ysize+y0; y++) {
+            plot_pixel(x, y, 0x0000);
+        }
+    }
+}
+
+//draws a box centered at coordinates
+void draw_box(int x0, int y0) {
+    int xsize = 40;
+    int ysize = 60;
+    //This does center tile
+    for (int x = x0 - xsize/2; x <= x0 + xsize/2; x++) {
+        for (int y = y0 - ysize/2; y <= y0 + ysize/2; y++) {
             plot_pixel(x, y, 0x0000);
         }
     }
