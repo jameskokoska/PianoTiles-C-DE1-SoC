@@ -25,21 +25,17 @@ int* random_column(){
 int main(void) {
     volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
     int N = 4;
-    int colour_box[N], dx_box[N], dy_box[N], x_box[N], y_box[N];
-    short int colours[] = {0x001F, 0x07E0, 0xF800, 0xF81F, 0xFFFF, 0xFFE0, 0x07FF, 0x1234};
-
+    int dx_box[N], dy_box[N], x_box[N], y_box[N];
     int* tiles_position = random_column();
     
-    return;
-
+    //Prepare tiles position
     for (int i = 0; i < N; i++) {
-        dx_box[i] = rand() % 2 * 2 - 1;
-        dy_box[i] = rand() % 2 * 2 - 1;
+        //dx_box[i] = 0;
+        //dy_box[i] = rand() % 2 * 2 - 1;
+        dy_box[i] = 5;
 
-        colour_box[i] = colours[rand() % N];
-
-        x_box[i] = rand() % 320;
-        y_box[i] = rand() % 240;
+        x_box[i] = 80+i*40;
+        y_box[i] = 60*i;
     }
 
     /* set front pixel buffer to start of FPGA On-chip memory */
@@ -62,12 +58,7 @@ int main(void) {
             draw_tile(x_box[i], y_box[i]);
 
             //which direction each box should be moving in the y
-            if (y_box[i] == 0) {
-                dy_box[i] = 1;
-            }
-            else if(y_box[i] == 239) {
-                dy_box[i] = -1;
-            }
+            
             y_box[i] += dy_box[i];
 
         }
@@ -77,12 +68,29 @@ int main(void) {
     }
 }
 
-//draws the piano tile where specified in black
+//draws a box centered at coordinates
+void draw_box(int x0, int y0) {
+    int xsize = 40;
+    int ysize = 60;
+    //This does center tile
+    for (int x = x0 - xsize/2; x <= x0 + xsize/2; x++) {
+        for (int y = y0 - ysize/2; y <= y0 + ysize/2; y++) {
+            plot_pixel(x, y, 0x0000);
+        }
+    }
+}
+
+//draws the piano tile where specified in black, give start coordinates of top left
+//and ensure the size doesn't go off screen on the bottom
 void draw_tile(int x0, int y0) {
     int xsize = 40;
     int ysize = 60;
-    for (int x = x0 - xsize/2; x <= x0 + xsize/2; x++) {
-        for (int y = y0 - ysize/2; y <= y0 + ysize/2; y++) {
+    if(y0>=180){
+        ysize = 240-y0;
+    }
+
+    for (int x = x0; x <= xsize+x0 ; x++) {
+        for (int y = y0; y <= ysize+y0; y++) {
             plot_pixel(x, y, 0x0000);
         }
     }
