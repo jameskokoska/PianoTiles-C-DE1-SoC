@@ -29,7 +29,7 @@ int main(void) {
     volatile int * pixelCtrlPtr = (int *)0xFF203020;
     int N = 4;
     int xBox[N], yBox[N];
-    int DYBox = 10;
+    int DYBox = 0;
     int* tilesPosition = randomColumn();
     int currentTile = 0;
     
@@ -53,9 +53,20 @@ int main(void) {
 
     //Main game loop
     while (1) {
+        
+        DYBox = 0;
+        int keyPushed = 0;
 
+        while (keyPushed == 0) {
+            keyPushed = *KEYPointer;
+        }
+        
+        bool correct = checkTile(keyPushed, tilesPosition[currentTile]);
         
 
+        if(correct) {
+            DYBox = 10;
+        }
         /*---------Draw Stuffs------------*/
         clearScreen();
 
@@ -65,9 +76,6 @@ int main(void) {
             yBox[i] += DYBox;
         }
 
-        int keyPushed = *KEYPointer;
-
-        bool correct = checkTile(keyPushed, tilesPosition[currentTile]);
         drawStatus(xBox[0], yBox[0], correct);
 
         waitForVsync(); // swap front and back buffers on VGA vertical sync
