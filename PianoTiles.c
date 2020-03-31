@@ -17,7 +17,7 @@ int* randomColumn(){
     static int array[100];
     for (int i=0; i<100; i++){
         array[i] = rand() % 4;
-        printf("%d",array[i]);
+        //printf("%d",array[i]);
     }
     return array;
 }
@@ -26,14 +26,15 @@ int main(void) {
     volatile int * pixelCtrlPtr = (int *)0xFF203020;
     int N = 4;
     int DXBox[N], DYBox[N], xBox[N], yBox[N];
-    int* TilesPosition = randomColumn();
+    int* tilesPosition = randomColumn();
+    int currentTile = 0;
     
     //Prepare tiles position
     for (int i = 0; i < N; i++) {
-        DYBox[i] = 5;
+        DYBox[i] = 10;
 
-        xBox[i] = 80+i*40;
-        yBox[i] = 60*i;
+        xBox[i] = 80+tilesPosition[currentTile+i]*40;
+        yBox[i] = abs(60*(i-(N-1)));
     }
 
     /* set front pixel buffer to start of FPGA On-chip memory */
@@ -50,6 +51,10 @@ int main(void) {
 
     //Main game loop
     while (1) {
+
+        
+
+        /*---------Draw Stuffs------------*/
         clearScreen();
         for (int i = 0; i < N; i++) {
             //draws the tile in black
@@ -57,13 +62,19 @@ int main(void) {
             yBox[i] += DYBox[i];
         }
         
+        
 
-    
         waitForVsync(); // swap front and back buffers on VGA vertical sync
         pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
 
-        if(yBox[N-1] >= 240){
-            yBox[N-1] = 0;
+        if(yBox[0] >= 240){
+            currentTile++;
+            for (int i = 0; i < N; i++) {
+                DYBox[i] = 5;
+
+                xBox[i] = 80+tilesPosition[currentTile+i]*40;
+                yBox[i] = abs(60*(i-(N-1)));
+            }
         }
     }
 }
