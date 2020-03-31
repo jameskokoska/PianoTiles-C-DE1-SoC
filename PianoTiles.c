@@ -13,6 +13,7 @@ void drawLine(int x0, int y0, int x1, int y1, short int colour);
 void drawTile(int x0, int y0);
 int* randomColumn();
 bool checkTile(int keyPushed, int frontTile);
+void drawStatus (int x0, int y0, bool correct);
 
 //generates a list from [0]->[99] of random numbers between 0-3
 int* randomColumn(){
@@ -63,10 +64,11 @@ int main(void) {
             drawTile(xBox[i], yBox[i]);
             yBox[i] += DYBox;
         }
+
         int keyPushed = *KEYPointer;
 
-        checkTile(keyPushed, 1);
-
+        bool correct = checkTile(keyPushed, tilesPosition[currentTile]);
+        drawStatus(xBox[0], yBox[0], correct);
 
         waitForVsync(); // swap front and back buffers on VGA vertical sync
         pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
@@ -81,10 +83,41 @@ int main(void) {
     }
 }
 
-bool checkTile(int keyPushed, int frontTile) {
-    if(keyPushed == frontTile) {
+void drawStatus (int x0, int y0, bool correct) {
+    int xSize = 40;
+    int ySize = 60;
+    if(y0>=180){
+        ySize = 240-y0;
+    }
+
+    for (int x = x0; x <= xSize+x0 ; x++) {
+        for (int y = y0; y <= ySize+y0; y++) {
+            if(!correct) {
+                plotPixel(x, y, 0xF800);
+            }
+            else {
+                plotPixel(x, y, 0x07E0);
+            }
+        }
+    }
+}
+
+//checks if the user input matches the tile drawn on screen
+bool checkTile (int keyPushed, int frontTile) {
+    // KEY[3] pushed = 8, KEY[2] = 4, KEY[1] = 2, KEY[0] = 1
+    if(frontTile == 0 && keyPushed == 8) {
         return true;
     }
+    else if (frontTile == 1 && keyPushed == 4) {
+        return true;
+    }
+    else if (frontTile == 2 && keyPushed == 2) {
+        return true;
+    }
+    else if (frontTile == 3 && keyPushed == 1) {
+        return true;
+    }
+
     return false;
 }
 
