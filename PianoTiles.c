@@ -281,9 +281,9 @@ int main(void) {
     int currentTile = 0;
     int keyPushedStore = 0;
     int keyPushed = 0;
+    bool correct;
     
     
-
     //Prepare tiles position
     for (int i = 0; i < N; i++) {
         xBox[i] = 80+tilesPosition[currentTile+i]*40;
@@ -305,28 +305,16 @@ int main(void) {
 
     //Main game loop
     while (1) {
-        keyPushed = *KEYPointer;
-        bool correct = checkTile(keyPushed, tilesPosition[currentTile]);
-        
-        /*---------Draw Stuffs------------*/
-        if(correct) 
-            keyPushedStore = 1;
-        if(keyPushedStore)
-            DYBox = 10;
-
-
-        clearScreen();
-        for (int j = 0; j < N; j++) {
-            //draws the tile in black
-            drawTile(xBox[j], yBox[j]);
-            yBox[j] += DYBox;
+        while(keyPushedStore == 0){
+            keyPushed = *KEYPointer; 
+            correct = checkTile(keyPushed, tilesPosition[currentTile]);
+            if(correct) 
+                keyPushedStore = 1;
+            if(keyPushedStore)
+                DYBox = 10;
         }
         
-        //draws red or green based on if the user input was correct
-        drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
-
-        waitForVsync(); // swap front and back buffers on VGA vertical sync
-        pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
+        
 
         if(yBox[0] >= heightGlobal){
             currentTile++;
@@ -337,6 +325,20 @@ int main(void) {
                 yBox[i] = abs(60*(i-(N-1)));
             }
         }
+
+        clearScreen();
+
+        for (int j = 0; j < N; j++) {
+            //draws the tile in black
+            drawTile(xBox[j], yBox[j]);
+            yBox[j] += DYBox;
+        }
+
+         //draws red or green based on if the user input was correct
+        drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
+
+        waitForVsync(); // swap front and back buffers on VGA vertical sync
+        pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
     }
 }
 
@@ -349,7 +351,7 @@ void drawStatus (int x0, int y0, bool correct, int keyPushedStore) {
 
     for (int x = x0; x <= xSize+x0 ; x++) {
         for (int y = y0; y <= ySize+y0; y++) {
-            if(!correct&&keyPushedStore!=1) {
+            if(!correct||keyPushedStore!=1) {
                 plotPixel(x, y, 0xF800);
             }
             else {
