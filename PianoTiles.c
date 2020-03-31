@@ -257,7 +257,7 @@ void drawTile(int x0, int y0);
 void drawTitle();
 int* randomColumn();
 bool checkTile(int keyPushed, int frontTile);
-void drawStatus (int x0, int y0, bool correct);
+void drawStatus (int x0, int y0, bool correct, int keyPushedStore);
 
 int widthGlobal = 320;
 int heightGlobal = 240;
@@ -279,7 +279,7 @@ int main(void) {
     int DYBox = 0;
     int* tilesPosition = randomColumn();
     int currentTile = 0;
-    int keyPushedStore = 1;
+    int keyPushedStore = 0;
     int keyPushed = 0;
     
     
@@ -323,7 +323,7 @@ int main(void) {
         }
         
         //draws red or green based on if the user input was correct
-        drawStatus(xBox[0], yBox[0] - DYBox, correct);
+        drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
 
         waitForVsync(); // swap front and back buffers on VGA vertical sync
         pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
@@ -340,7 +340,7 @@ int main(void) {
     }
 }
 
-void drawStatus (int x0, int y0, bool correct) {
+void drawStatus (int x0, int y0, bool correct, int keyPushedStore) {
     int xSize = 40;
     int ySize = 60;
     if(y0>=180){
@@ -349,7 +349,7 @@ void drawStatus (int x0, int y0, bool correct) {
 
     for (int x = x0; x <= xSize+x0 ; x++) {
         for (int y = y0; y <= ySize+y0; y++) {
-            if(!correct) {
+            if(!correct&&keyPushedStore!=1) {
                 plotPixel(x, y, 0xF800);
             }
             else {
