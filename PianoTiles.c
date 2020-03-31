@@ -301,8 +301,6 @@ int main(void) {
     *(pixelCtrlPtr + 1) = 0xC0000000;
     pixelBufferStart = *(pixelCtrlPtr + 1); // we draw on the back buffer
 
-    drawTitle();
-    return;
     //Main game loop
     while (1) {
         
