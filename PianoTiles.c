@@ -1,19 +1,19 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-volatile int pixel_buffer_start; // global variable
+volatile int pixelBufferStart; // global variable
 
 
 void swap(int *num1, int *num2);
-void plot_pixel(int x, int y, short int line_color);
-void clear_screen();
-void wait_for_vsync();
-void draw_line(int x0, int y0, int x1, int y1, short int colour);
-void draw_tile(int x0, int y0);
-int* random_column();
+void plotPixel(int x, int y, short int line_color);
+void clearScreen();
+void waitForVsync();
+void drawLine(int x0, int y0, int x1, int y1, short int colour);
+void drawTile(int x0, int y0);
+int* randomColumn();
 
 //generates a list from [0]->[99] of random numbers between 0-3
-int* random_column(){
+int* randomColumn(){
     static int array[100];
     for (int i=0; i<100; i++){
         array[i] = rand() % 4;
@@ -23,46 +23,47 @@ int* random_column(){
 }
 
 int main(void) {
-    volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
+    volatile int * pixelCtrlPtr = (int *)0xFF203020;
     int N = 4;
-    int dx_box[N], dy_box[N], x_box[N], y_box[N];
-    int* tiles_position = random_column();
+    int DXBox[N], DYBox[N], xBox[N], yBox[N];
+    int* TilesPosition = randomColumn();
     
     //Prepare tiles position
     for (int i = 0; i < N; i++) {
-        dy_box[i] = 5;
+        DYBox[i] = 5;
 
-        x_box[i] = 80+i*40;
+        xBox[i] = 80+i*40;
+        yBox[i] = 60*i;
     }
 
     /* set front pixel buffer to start of FPGA On-chip memory */
-    *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
+    *(pixelCtrlPtr + 1) = 0xC8000000; // first store the address in the 
                                         // back buffer
     /* now, swap the front/back buffers, to set the front buffer location */
-    wait_for_vsync();
+    waitForVsync();
     /* initialize a pointer to the pixel buffer, used by drawing functions */
-    pixel_buffer_start = *pixel_ctrl_ptr;
-    clear_screen(); // pixel_buffer_start points to the pixel buffer
+    pixelBufferStart = *pixelCtrlPtr;
+    clearScreen(); // pixel_buffer_start points to the pixel buffer
     /* set back pixel buffer to start of SDRAM memory */
-    *(pixel_ctrl_ptr + 1) = 0xC0000000;
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+    *(pixelCtrlPtr + 1) = 0xC0000000;
+    pixelBufferStart = *(pixelCtrlPtr + 1); // we draw on the back buffer
 
     //Main game loop
     while (1) {
-        clear_screen();
+        clearScreen();
         for (int i = 0; i < N; i++) {
             //draws the tile in black
-            draw_tile(x_box[i], y_box[i]);
-            y_box[i] += dy_box[i];
+            drawTile(xBox[i], yBox[i]);
+            yBox[i] += DYBox[i];
         }
         
 
     
-        wait_for_vsync(); // swap front and back buffers on VGA vertical sync
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
+        waitForVsync(); // swap front and back buffers on VGA vertical sync
+        pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
 
-        if(y_box[N-1] >= 240){
-            y_box[N-1] = 0;
+        if(yBox[N-1] >= 240){
+            yBox[N-1] = 0;
         }
     }
 }
@@ -70,56 +71,56 @@ int main(void) {
 
 //draws the piano tile where specified in black, give start coordinates of top left
 //and ensure the size doesn't go off screen on the bottom
-void draw_tile(int x0, int y0) {
-    int xsize = 40;
-    int ysize = 60;
+void drawTile(int x0, int y0) {
+    int xSize = 40;
+    int ySize = 60;
     if(y0>=180){
-        ysize = 240-y0;
+        ySize = 240-y0;
     }
 
-    for (int x = x0; x <= xsize+x0 ; x++) {
-        for (int y = y0; y <= ysize+y0; y++) {
-            plot_pixel(x, y, 0x0000);
+    for (int x = x0; x <= xSize+x0 ; x++) {
+        for (int y = y0; y <= ySize+y0; y++) {
+            plotPixel(x, y, 0x0000);
         }
     }
 }
 
 //draws a box centered at coordinates
-void draw_box(int x0, int y0) {
-    int xsize = 40;
-    int ysize = 60;
+void drawBox(int x0, int y0) {
+    int xSize = 40;
+    int ySize = 60;
     //This does center tile
-    for (int x = x0 - xsize/2; x <= x0 + xsize/2; x++) {
-        for (int y = y0 - ysize/2; y <= y0 + ysize/2; y++) {
-            plot_pixel(x, y, 0x0000);
+    for (int x = x0 - xSize/2; x <= x0 + xSize/2; x++) {
+        for (int y = y0 - ySize/2; y <= y0 + ySize/2; y++) {
+            plotPixel(x, y, 0x0000);
         }
     }
 }
 
 //draws the pixel at a specified coordinate on the VGA display
-void plot_pixel(int x, int y, short int line_color) {
-    *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
+void plotPixel(int x, int y, short int lineColor) {
+    *(short int *)(pixelBufferStart + (y << 10) + (x << 1)) = lineColor;
 }
 
 //clears the screen by drawing a pixel at every spot in white
-void clear_screen() {
+void clearScreen() {
     for(int x=0; x < 320; x++) {
         for(int y=0; y < 240; y++) {
-            plot_pixel(x, y, 0xffff);
+            plotPixel(x, y, 0xffff);
         }
     }
 }
 
-void wait_for_vsync() {
-    volatile int * pixel_ctrl_ptr = 0xFF203020; //pixel controller
+void waitForVsync() {
+    volatile int * pixelCtrlPtr = 0xFF203020; //pixel controller
     register int status;
 
-    *pixel_ctrl_ptr = 1; //start the sync process
+    *pixelCtrlPtr = 1; //start the sync process
 
-    status = *(pixel_ctrl_ptr + 3);
+    status = *(pixelCtrlPtr + 3);
     //wait for the S bit to become 0
     while ((status &0x01) !=0) {
-        status = *(pixel_ctrl_ptr + 3);
+        status = *(pixelCtrlPtr + 3);
     }
 }
 
@@ -131,7 +132,7 @@ void swap(int *num1, int *num2) {
 }
 
 //uses Bresenham's algorithm to determine where each pixel goes to draw a line
-void draw_line(int x0, int y0, int x1, int y1, short int colour) {
+void drawLine(int x0, int y0, int x1, int y1, short int colour) {
     //if the change in y is greater than the change in x
     bool steep = abs(y1 - y0) > abs(x1 - x0);
 
@@ -148,29 +149,29 @@ void draw_line(int x0, int y0, int x1, int y1, short int colour) {
     int deltay = abs(y1 - y0);
     int error = -(deltax / 2);
     int y = y0;
-    int y_step;
+    int yStep;
 
     if (y0 < y1) {
-        y_step = 1;
+        yStep = 1;
     }
 
     else {
-        y_step = -1;
+        yStep = -1;
     }
 
     for(int x = x0; x<= x1; x++) {
         if (steep) {
-            plot_pixel(y,x, colour);
+            plotPixel(y,x, colour);
         }
 
         else {
-            plot_pixel(x, y, colour);
+            plotPixel(x, y, colour);
         }
 
         error += deltay;
 
         if (error >= 0) {
-            y += y_step;
+            y += yStep;
             error -= deltax;
         }
     }
