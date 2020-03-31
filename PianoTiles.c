@@ -313,20 +313,22 @@ int main(void) {
         
         bool correct = checkTile(keyPushed, tilesPosition[currentTile]);
         
-
+        /*---------Draw Stuffs------------*/
         if(correct) {
             DYBox = 10;
         }
-        /*---------Draw Stuffs------------*/
+        
         clearScreen();
 
-        for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
             //draws the tile in black
-            drawTile(xBox[i], yBox[i]);
-            yBox[i] += DYBox;
+            drawTile(xBox[j], yBox[j]);
+            yBox[j] += DYBox;
         }
-
-        drawStatus(xBox[0], yBox[0], correct);
+            
+        
+        //draws red or green based on if the user input was correct
+        drawStatus(xBox[0], yBox[0] - DYBox, correct);
 
         waitForVsync(); // swap front and back buffers on VGA vertical sync
         pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
