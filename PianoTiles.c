@@ -25,14 +25,13 @@ int* randomColumn(){
 int main(void) {
     volatile int * pixelCtrlPtr = (int *)0xFF203020;
     int N = 4;
-    int DXBox[N], DYBox[N], xBox[N], yBox[N];
+    int xBox[N], yBox[N];
+    int DYBox = 10;
     int* tilesPosition = randomColumn();
     int currentTile = 0;
     
     //Prepare tiles position
     for (int i = 0; i < N; i++) {
-        DYBox[i] = 10;
-
         xBox[i] = 80+tilesPosition[currentTile+i]*40;
         yBox[i] = abs(60*(i-(N-1)));
     }
@@ -59,7 +58,7 @@ int main(void) {
         for (int i = 0; i < N; i++) {
             //draws the tile in black
             drawTile(xBox[i], yBox[i]);
-            yBox[i] += DYBox[i];
+            yBox[i] += DYBox;
         }
         
         
@@ -70,8 +69,6 @@ int main(void) {
         if(yBox[0] >= 240){
             currentTile++;
             for (int i = 0; i < N; i++) {
-                DYBox[i] = 5;
-
                 xBox[i] = 80+tilesPosition[currentTile+i]*40;
                 yBox[i] = abs(60*(i-(N-1)));
             }
