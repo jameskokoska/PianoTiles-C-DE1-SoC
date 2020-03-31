@@ -30,12 +30,9 @@ int main(void) {
     
     //Prepare tiles position
     for (int i = 0; i < N; i++) {
-        //dx_box[i] = 0;
-        //dy_box[i] = rand() % 2 * 2 - 1;
         dy_box[i] = 5;
 
         x_box[i] = 80+i*40;
-        y_box[i] = 60*i;
     }
 
     /* set front pixel buffer to start of FPGA On-chip memory */
@@ -56,9 +53,6 @@ int main(void) {
         for (int i = 0; i < N; i++) {
             //draws the tile in black
             draw_tile(x_box[i], y_box[i]);
-
-            //which direction each box should be moving in the y
-            
             y_box[i] += dy_box[i];
 
         }
@@ -72,9 +66,8 @@ int main(void) {
 void draw_box(int x0, int y0) {
     int xsize = 40;
     int ysize = 60;
-    //This does center tile
-    for (int x = x0 - xsize/2; x <= x0 + xsize/2; x++) {
-        for (int y = y0 - ysize/2; y <= y0 + ysize/2; y++) {
+    for (int x = x0; x <= x0 + xsize; x++) {
+        for (int y = y0; y <= y0 + ysize; y++) {
             plot_pixel(x, y, 0x0000);
         }
     }
