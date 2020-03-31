@@ -279,6 +279,8 @@ int main(void) {
     int DYBox = 0;
     int* tilesPosition = randomColumn();
     int currentTile = 0;
+    int keyPushedStore = 1;
+    int keyPushed = 0;
     
     
 
@@ -303,29 +305,22 @@ int main(void) {
 
     //Main game loop
     while (1) {
-        
-        DYBox = 0;
-        int keyPushed = 0;
-
-        while (keyPushed == 0) {
-            keyPushed = *KEYPointer;
-        }
-        
+        keyPushed = *KEYPointer;
         bool correct = checkTile(keyPushed, tilesPosition[currentTile]);
         
         /*---------Draw Stuffs------------*/
-        if(correct) {
+        if(correct) 
+            keyPushedStore = 1;
+        if(keyPushedStore)
             DYBox = 10;
-        }
-        
-        clearScreen();
 
+
+        clearScreen();
         for (int j = 0; j < N; j++) {
             //draws the tile in black
             drawTile(xBox[j], yBox[j]);
             yBox[j] += DYBox;
         }
-            
         
         //draws red or green based on if the user input was correct
         drawStatus(xBox[0], yBox[0] - DYBox, correct);
@@ -335,6 +330,8 @@ int main(void) {
 
         if(yBox[0] >= heightGlobal){
             currentTile++;
+            keyPushedStore = 0;
+            DYBox = 0;
             for (int i = 0; i < N; i++) {
                 xBox[i] = 80+tilesPosition[currentTile+i]*40;
                 yBox[i] = abs(60*(i-(N-1)));
