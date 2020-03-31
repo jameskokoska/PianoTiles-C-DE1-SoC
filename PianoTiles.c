@@ -252,12 +252,14 @@ void swap(int *num1, int *num2);
 void plotPixel(int x, int y, short int line_color);
 void clearScreen();
 void waitForVsync();
+void drawBox(int x0, int y0, int xSize, int ySize, short int color);
 void drawLine(int x0, int y0, int x1, int y1, short int colour);
-void drawTile(int x0, int y0);
 void drawTitle();
+void drawTile(int x0, int y0);
 int* randomColumn();
 bool checkTile(int keyPushed, int frontTile);
 void drawStatus (int x0, int y0, bool correct, int keyPushedStore);
+void drawText(int x, int y, char * textPtr);
 
 int widthGlobal = 320;
 int heightGlobal = 240;
@@ -282,6 +284,7 @@ int main(void) {
     int keyPushedStore = 0;
     int keyPushed = 0;
     bool correct;
+    int score = 0;
     
     
     //Prepare tiles position
@@ -303,6 +306,10 @@ int main(void) {
     *(pixelCtrlPtr + 1) = 0xC0000000;
     pixelBufferStart = *(pixelCtrlPtr + 1); // we draw on the back buffer
 
+    //Clear the text
+    char textScoreName[40] ="              \0";
+    drawText(3, 3, textScoreName); 
+
     //Main game loop
     while (1) {
         while(keyPushedStore == 0){
@@ -310,14 +317,16 @@ int main(void) {
             correct = checkTile(keyPushed, tilesPosition[currentTile]);
             if(correct) 
                 keyPushedStore = 1;
+            else
+                keyPushedStore = 0;
             if(keyPushedStore)
                 DYBox = 10;
         }
         
-        
 
         if(yBox[0] >= heightGlobal){
             currentTile++;
+            score++;
             keyPushedStore = 0;
             DYBox = 0;
             for (int i = 0; i < N; i++) {
@@ -326,7 +335,19 @@ int main(void) {
             }
         }
 
+        /*=========================================================*/
+        /*=                   All Drawing Below                   =*/
+        /*=========================================================*/
+
         clearScreen();
+
+        char textScore[40];
+        sprintf(textScore, "%d\0", score); 
+        char textScoreName[40] ="Score: ";
+        drawText(3, 3, strcat(textScoreName, textScore)); 
+
+        //Text background
+        drawBox(10,10,39,6,0xF800);
 
         for (int j = 0; j < N; j++) {
             //draws the tile in black
@@ -396,14 +417,10 @@ void drawTile(int x0, int y0) {
     }
 }
 
-//draws a box centered at coordinates
-void drawBox(int x0, int y0) {
-    int xSize = 40;
-    int ySize = 60;
-    //This does center tile
-    for (int x = x0 - xSize/2; x <= x0 + xSize/2; x++) {
-        for (int y = y0 - ySize/2; y <= y0 + ySize/2; y++) {
-            plotPixel(x, y, 0x0000);
+void drawBox(int x0, int y0, int xSize, int ySize, short int color) {
+    for (int x = x0; x <= x0+xSize; x++) {
+        for (int y = y0; y <= y0+ySize; y++) {
+            plotPixel(x, y, color);
         }
     }
 }
@@ -417,7 +434,7 @@ void plotPixel(int x, int y, short int lineColor) {
 void clearScreen() {
     for(int x=0; x < widthGlobal; x++) {
         for(int y=0; y < heightGlobal; y++) {
-            plotPixel(x, y, 0xFFFFFF);
+            plotPixel(x, y, 0xFFFF);
         }
     }
 }
@@ -479,22 +496,16 @@ void drawLine(int x0, int y0, int x1, int y1, short int colour) {
     int y = y0;
     int yStep;
 
-    if (y0 < y1) {
+    if (y0 < y1) 
         yStep = 1;
-    }
-
-    else {
+    else
         yStep = -1;
-    }
 
     for(int x = x0; x<= x1; x++) {
-        if (steep) {
+        if (steep)
             plotPixel(y,x, colour);
-        }
-
-        else {
+        else 
             plotPixel(x, y, colour);
-        }
 
         error += deltay;
 
@@ -505,4 +516,13 @@ void drawLine(int x0, int y0, int x1, int y1, short int colour) {
     }
 }
 
-
+void drawText(int x, int y, char * textPtr) { 
+    int offset;
+    offset = (y << 7) + x;
+    volatile char * characterBuffer = (char *)0xC9000000; 
+    while (*(textPtr)) { 
+        *(characterBuffer+offset) = *(textPtr); 
+        textPtr++; 
+        offset++;
+    }
+}
