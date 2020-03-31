@@ -1,8 +1,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 volatile int pixelBufferStart; // global variable
-
+volatile int * KEYPointer = (int *) 0xFF200050; //points to the KEYS on the board
 
 void swap(int *num1, int *num2);
 void plotPixel(int x, int y, short int line_color);
@@ -11,6 +12,7 @@ void waitForVsync();
 void drawLine(int x0, int y0, int x1, int y1, short int colour);
 void drawTile(int x0, int y0);
 int* randomColumn();
+bool checkTile(int keyPushed);
 
 //generates a list from [0]->[99] of random numbers between 0-3
 int* randomColumn(){
@@ -55,13 +57,16 @@ int main(void) {
 
         /*---------Draw Stuffs------------*/
         clearScreen();
+
         for (int i = 0; i < N; i++) {
             //draws the tile in black
             drawTile(xBox[i], yBox[i]);
             yBox[i] += DYBox;
         }
-        
-        
+        int keyPushed = *KEYPointer;
+
+        checkTile(keyPushed);
+
 
         waitForVsync(); // swap front and back buffers on VGA vertical sync
         pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
@@ -76,6 +81,12 @@ int main(void) {
     }
 }
 
+bool checkTile(int keyPushed, int frontTile) {
+    if(keyPushed == frontTile) {
+        return true;
+    }
+    return false;
+}
 
 //draws the piano tile where specified in black, give start coordinates of top left
 //and ensure the size doesn't go off screen on the bottom
