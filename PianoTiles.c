@@ -61,10 +61,15 @@ int main(void) {
             
             y_box[i] += dy_box[i];
         }
+        
 
     
         wait_for_vsync(); // swap front and back buffers on VGA vertical sync
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
+
+        if(y_box[N-1] >= 240){
+            y_box[N-1] = 0;
+        }
     }
 }
 
