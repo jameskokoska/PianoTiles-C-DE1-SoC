@@ -12,7 +12,7 @@ void waitForVsync();
 void drawLine(int x0, int y0, int x1, int y1, short int colour);
 void drawTile(int x0, int y0);
 int* randomColumn();
-bool checkTile(int keyPushed);
+bool checkTile(int keyPushed, int frontTile);
 
 //generates a list from [0]->[99] of random numbers between 0-3
 int* randomColumn(){
@@ -65,7 +65,7 @@ int main(void) {
         }
         int keyPushed = *KEYPointer;
 
-        checkTile(keyPushed);
+        checkTile(keyPushed, 1);
 
 
         waitForVsync(); // swap front and back buffers on VGA vertical sync
