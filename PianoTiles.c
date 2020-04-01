@@ -763,153 +763,166 @@ int* randomColumn(){
 }
 
 int main(void) {
-    volatile int * pixelCtrlPtr = (int *)0xFF203020;
-    int N = 4;
-    int xBox[N], yBox[N];
-    int DYBox = 0;
-    int* tilesPosition = randomColumn();
-    int currentTile = 0;
-    int keyPushedStore = 0;
-    int keyPushed = 0;
-    int correct;
-    int score = 0;
-    bool gameEnd = false;
-    bool firstPress = true;
-    bool highscore = false;
-    int animateX = 0;
-    int animateY = 0;
     
-    
-    //Prepare tiles position
-    for (int i = 0; i < N; i++) {
-        xBox[i] = 80+tilesPosition[currentTile+i]*40;
-        yBox[i] = abs(60*(i-(N-1)));
-    }
-
-    /* set front pixel buffer to start of FPGA On-chip memory */
-    *(pixelCtrlPtr + 1) = 0xC8000000; // first store the address in the 
-                                        // back buffer
-    /* now, swap the front/back buffers, to set the front buffer location */
-    waitForVsync();
-    /* initialize a pointer to the pixel buffer, used by drawing functions */
-    pixelBufferStart = *pixelCtrlPtr;
-    clearScreen(); // pixel_buffer_start points to the pixel buffer
-    drawTitlePage();
-    /* set back pixel buffer to start of SDRAM memory */
-    *(pixelCtrlPtr + 1) = 0xC0000000;
-    pixelBufferStart = *(pixelCtrlPtr + 1); // we draw on the back buffer
-
-    //Clear the text
-    char textScoreName[40] ="              \0";
-    drawText(3, 3, textScoreName); 
 
     //Main game loop
     while (1) {
 
-        while(keyPushed != 0) {
+        
+
+        volatile int * pixelCtrlPtr = (int *)0xFF203020;
+        int N = 4;
+        int xBox[N], yBox[N];
+        int DYBox = 0;
+        int* tilesPosition = randomColumn();
+        int currentTile = 0;
+        int keyPushedStore = 0;
+        int keyPushed = 0;
+        int correct;
+        int score = 0;
+        bool gameEnd = false;
+        bool firstPress = true;
+        bool highscore = false;
+        int animateX = 0;
+        int animateY = 0;
+        bool gameOver = false;
+        
+        //Prepare tiles position
+        for (int i = 0; i < N; i++) {
+            xBox[i] = 80+tilesPosition[currentTile+i]*40;
+            yBox[i] = abs(60*(i-(N-1)));
+        }
+
+        while(keyPushed == 0) {
             keyPushed = *KEYPointer;
         }
-        
-        while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
-            keyPushed = *KEYPointer; 
-            correct = checkTile(keyPushed, tilesPosition[currentTile]);
-            if(correct==1) {
-                keyPushedStore = 1;
-            } else if (correct==-1){
-                gameEnd = true;
-                break;
-            }
-            if(keyPushedStore)
-                DYBox = 30;
-        }
-        
 
-        if(yBox[0] >= heightGlobal){
-            currentTile++;
-            score++;
-            keyPushedStore = 0;
-            DYBox = 0;
-            for (int i = 0; i < N; i++) {
-                xBox[i] = 80+tilesPosition[currentTile+i]*40;
-                yBox[i] = abs(60*(i-(N-1)));
-            }
-        }
+        /* set front pixel buffer to start of FPGA On-chip memory */
+        *(pixelCtrlPtr + 1) = 0xC8000000; // first store the address in the 
+                                            // back buffer
+        /* now, swap the front/back buffers, to set the front buffer location */
+        waitForVsync();
+        /* initialize a pointer to the pixel buffer, used by drawing functions */
+        pixelBufferStart = *pixelCtrlPtr;
+        clearScreen(); // pixel_buffer_start points to the pixel buffer
+        drawTitlePage();
+        /* set back pixel buffer to start of SDRAM memory */
+        *(pixelCtrlPtr + 1) = 0xC0000000;
+        pixelBufferStart = *(pixelCtrlPtr + 1); // we draw on the back buffer
 
+        //Clear the text
+        char textScoreName[40] ="              \0";
+        drawText(3, 3, textScoreName); 
 
-        //Wait for user to press one key to start
-        while(firstPress == true){
+        while(!gameOver) {
+            while(keyPushed != 0) {
             keyPushed = *KEYPointer;
-            if (keyPushed != 0){
-                firstPress = false;
             }
-        }
-
-        /*=========================================================*/
-        /*=                   All Drawing Below                   =*/
-        /*=========================================================*/
-        
-        clearScreen();
-
-        if(!gameEnd){
-            char textScore[40];
-            sprintf(textScore, "%d", score); 
-            char textScoreName[40] ="Score: ";
-            drawText(3, 3, strcat(textScoreName, textScore)); 
-
-            //Text background
-            drawBox(10,10,39,6,0xF800);
-
-            for (int j = 0; j < N; j++) {
-                //draws the tile in black
-                drawTile(xBox[j], yBox[j]);
-                yBox[j] += DYBox;
-            }
-
-            //draws red or green based on if the user input was correct
-            drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
-        }
-        //highscore = true;
-        //animateY = heightGlobal;
-        if(highscore){
-            animateY=animateY + 30;
-            drawBox(0,0,widthGlobal,animateY,0xF800);
-
-            char textScore[40];
-            sprintf(textScore, "%d", score); 
-            char textScoreName[40] ="Your score: ";
-            drawText(3, 3, strcat(textScoreName, textScore)); 
             
-            if(animateY>=heightGlobal){
-                drawHighscorePage();
+            while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
+                keyPushed = *KEYPointer; 
+                correct = checkTile(keyPushed, tilesPosition[currentTile]);
+                if(correct==1) {
+                    keyPushedStore = 1;
+                } else if (correct==-1){
+                    gameEnd = true;
+                    break;
+                }
+                if(keyPushedStore)
+                    DYBox = 30;
+            }
+            
 
-                int tempScore=score;
-                int offsetX = -15;
-                int offsetY = -106;
-                while(tempScore!=0){
-                    drawSegNum(tempScore%10,offsetX,offsetY,0x0000);
-                    offsetX += 13;
-                    tempScore = tempScore/10;
+            if(yBox[0] >= heightGlobal){
+                currentTile++;
+                score++;
+                keyPushedStore = 0;
+                DYBox = 0;
+                for (int i = 0; i < N; i++) {
+                    xBox[i] = 80+tilesPosition[currentTile+i]*40;
+                    yBox[i] = abs(60*(i-(N-1)));
                 }
             }
-        }
 
-        if(gameEnd && !highscore){
-            drawEndPage();
-            int tempScore = score;
-            int offset = 0;
-            while(tempScore){
-                drawSegNum(tempScore%10,offset,0,0x0000);
-                offset += 13;
-                tempScore = tempScore/10;
+
+            //Wait for user to press one key to start
+            while(firstPress == true){
+                keyPushed = *KEYPointer;
+                if (keyPushed != 0){
+                    firstPress = false;
+                }
             }
-            highscore = true;
-            firstPress = true;
-        }
 
+            /*=========================================================*/
+            /*=                   All Drawing Below                   =*/
+            /*=========================================================*/
+            
+            clearScreen();
+
+            if(!gameEnd){
+                char textScore[40];
+                sprintf(textScore, "%d", score); 
+                char textScoreName[40] ="Score: ";
+                drawText(3, 3, strcat(textScoreName, textScore)); 
+
+                //Text background
+                drawBox(10,10,39,6,0xF800);
+
+                for (int j = 0; j < N; j++) {
+                    //draws the tile in black
+                    drawTile(xBox[j], yBox[j]);
+                    yBox[j] += DYBox;
+                }
+
+                //draws red or green based on if the user input was correct
+                drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
+            }
+            //highscore = true;
+            //animateY = heightGlobal;
+            if(highscore){
+                animateY=animateY + 30;
+                drawBox(0,0,widthGlobal,animateY,0xF800);
+
+                char textScore[40];
+                sprintf(textScore, "%d", score); 
+                char textScoreName[40] ="Your score: ";
+                drawText(3, 3, strcat(textScoreName, textScore)); 
+                
+                if(animateY>=heightGlobal){
+                    drawHighscorePage();
+
+                    int tempScore=score;
+                    int offsetX = -15;
+                    int offsetY = -106;
+                    while(tempScore!=0){
+                        drawSegNum(tempScore%10,offsetX,offsetY,0x0000);
+                        offsetX += 13;
+                        tempScore = tempScore/10;
+                    }
+                    
+                    gameOver = true;
+                }
+            }
+
+            if(gameEnd && !highscore){
+                drawEndPage();
+                int tempScore = score;
+                int offset = 0;
+                while(tempScore){
+                    drawSegNum(tempScore%10,offset,0,0x0000);
+                    offset += 13;
+                    tempScore = tempScore/10;
+                }
+                highscore = true;
+                firstPress = true;
+            }
+
+            
+            
+            waitForVsync(); // swap front and back buffers on VGA vertical sync
+            pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
+        }
         
-        
-        waitForVsync(); // swap front and back buffers on VGA vertical sync
-        pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
                 
     }
 }
