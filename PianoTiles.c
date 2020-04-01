@@ -805,6 +805,11 @@ int main(void) {
 
     //Main game loop
     while (1) {
+
+        while(keyPushed != 0) {
+            keyPushed = *KEYPointer;
+        }
+        
         while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
             keyPushed = *KEYPointer; 
             correct = checkTile(keyPushed, tilesPosition[currentTile]);
@@ -836,7 +841,6 @@ int main(void) {
             keyPushed = *KEYPointer;
             if (keyPushed != 0){
                 firstPress = false;
-                keyPushed = 0;
             }
         }
 
@@ -881,7 +885,7 @@ int main(void) {
                 score=654;
                 int offsetX = -15;
                 int offsetY = -106;
-                while(score){
+                while(score!=0){
                     drawSegNum(score%10,offsetX,offsetY,0x0000);
                     offsetX += 13;
                     score = score/10;
