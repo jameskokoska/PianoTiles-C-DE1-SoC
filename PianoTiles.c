@@ -891,7 +891,7 @@ int main(void) {
                 if(animateY>=heightGlobal){
                     drawHighscorePage();
 
-                    int tempScore=score;
+                    int tempScore=reverseNumber(score);
                     int offsetX = -15;
                     int offsetY = -106;
                     while(tempScore!=0){
@@ -906,7 +906,7 @@ int main(void) {
 
             if(gameEnd && !highscore){
                 drawEndPage();
-                int tempScore = score;
+                int tempScore = reverseNumber(score);
                 int offset = 0;
                 while(tempScore){
                     drawSegNum(tempScore%10,offset,0,0x0000);
@@ -926,7 +926,17 @@ int main(void) {
                 
     }
 }
-
+//reverse a given integer all the way around
+int reverseNumber (int num) {
+    int remainder = 0;
+    int reversedNum = 0;
+    while (num!= 0) {
+        remainder = num % 10;
+        reversedNum = reversedNum*10 + remainder;
+        num/= 10;
+    }
+    return reversedNum;
+}
 
 //Draw the seg 7 display for the end screen
 void drawSegNum(int number, int deltaX, int deltaY, short int color){
