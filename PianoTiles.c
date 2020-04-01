@@ -882,25 +882,25 @@ int main(void) {
             if(animateY>=heightGlobal){
                 drawHighscorePage();
 
-                score=654;
+                int tempScore=score;
                 int offsetX = -15;
                 int offsetY = -106;
-                while(score!=0){
-                    drawSegNum(score%10,offsetX,offsetY,0x0000);
+                while(tempScore!=0){
+                    drawSegNum(tempScore%10,offsetX,offsetY,0x0000);
                     offsetX += 13;
-                    score = score/10;
+                    tempScore = tempScore/10;
                 }
             }
         }
 
         if(gameEnd && !highscore){
             drawEndPage();
-            score=105;
+            int tempScore = score;
             int offset = 0;
-            while(score){
-                drawSegNum(score%10,offset,0,0x0000);
+            while(tempScore){
+                drawSegNum(tempScore%10,offset,0,0x0000);
                 offset += 13;
-                score = score/10;
+                tempScore = tempScore/10;
             }
             highscore = true;
             firstPress = true;
