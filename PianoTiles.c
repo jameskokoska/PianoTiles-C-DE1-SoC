@@ -748,6 +748,7 @@ void drawStatus (int x0, int y0, bool correct, int keyPushedStore);
 void drawText(int x, int y, char * textPtr);
 void drawSegNum(int number, int deltaX, int deltaY, short int color);
 void animateHighscore(int x0, int y0, int xSize, int ySize);
+void drawTileClear(int x0, int y0, int dy);
 
 int widthGlobal = 320;
 int heightGlobal = 240;
@@ -763,7 +764,7 @@ int* randomColumn(){
 }
 
 int main(void) {
-    
+    int highscores[] = {0,0,0,0,0}; 
 
     //Main game loop
     while (1) {
@@ -786,6 +787,8 @@ int main(void) {
         int animateX = 0;
         int animateY = 0;
         bool gameOver = false;
+        int clearOnce = 0; //clears 2 buffers
+        bool animateTile = false;
         
         //Prepare tiles position
         for (int i = 0; i < N; i++) {
@@ -829,7 +832,7 @@ int main(void) {
                     break;
                 }
                 if(keyPushedStore)
-                    DYBox = 30;
+                    DYBox = 10;
             }
             
 
@@ -856,8 +859,11 @@ int main(void) {
             /*=========================================================*/
             /*=                   All Drawing Below                   =*/
             /*=========================================================*/
+            if((!gameEnd&&!animateTile) || clearOnce<2){
+                clearScreen();
+                clearOnce++;
+            }
             
-            clearScreen();
 
             if(!gameEnd){
                 char textScore[40];
@@ -873,14 +879,15 @@ int main(void) {
                     drawTile(xBox[j], yBox[j]);
                     yBox[j] += DYBox;
                 }
+                animateTile = true;
 
                 //draws red or green based on if the user input was correct
                 drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
             }
-            //highscore = true;
-            //animateY = heightGlobal;
+
+
             if(highscore){
-                animateY=animateY + 30;
+                animateY=animateY+30;
                 drawBox(0,0,widthGlobal,animateY,0xF800);
 
                 char textScore[40];
@@ -891,51 +898,81 @@ int main(void) {
                 if(animateY>=heightGlobal){
                     drawHighscorePage();
 
-                    int tempScore=reverseNumber(score);
+                    if(score>highscores[0]){
+                        highscores[4] = highscores[3];
+                        highscores[3] = highscores[2];
+                        highscores[2] = highscores[1];
+                        highscores[1] = highscores[0];
+                        highscores[0] = score;
+                    } else if (score>highscores[1]){
+                        highscores[4] = highscores[3];
+                        highscores[3] = highscores[2];
+                        highscores[2] = highscores[1];
+                        highscores[1] = score;
+                    } else if (score>highscores[2]){
+                        highscores[4] = highscores[3];
+                        highscores[3] = highscores[2];
+                        highscores[2] = score;
+                    } else if (score>highscores[3]){
+                        highscores[4] = highscores[3];
+                        highscores[3] = score;
+                    } else if (score>highscores[4]){
+                        highscores[4] = score;
+                    }
                     int offsetX = -15;
                     int offsetY = -106;
-                    while(tempScore!=0){
-                        drawSegNum(tempScore%10,offsetX,offsetY,0x0000);
-                        offsetX += 13;
-                        tempScore = tempScore/10;
+                    int scoreTemp;
+                    for(int i=0; i < 5; i++){
+                        scoreTemp = highscores[i];
+                        while(scoreTemp){
+                            drawSegNum(scoreTemp%10,offsetX,offsetY,0x0000);
+                            offsetX -= 13;
+                            scoreTemp = scoreTemp/10;
+                        }
+                        offsetX = -15;
+                        offsetY += 26;
                     }
-                    
                     gameOver = true;
                 }
             }
 
             if(gameEnd && !highscore){
-                drawEndPage();
-                int tempScore = reverseNumber(score);
-                int offset = 0;
-                while(tempScore){
-                    drawSegNum(tempScore%10,offset,0,0x0000);
-                    offset += 13;
-                    tempScore = tempScore/10;
+                animateX=animateX+30;
+                drawBox(xBox[0]-animateX/2, yBox[0],animateX,60,0xF800);
+                drawBox(10,10,39,6,0xF800);
+                if(animateX>=widthGlobal){
+                    drawEndPage();
+                    int offset = 0;
+                    if (score==0){
+                        drawSegNum(0,offset,0,0x0000);
+                    } else {
+                        int scoreTemp = score;
+                        while(scoreTemp){
+                            drawSegNum(scoreTemp%10,offset,0,0x0000);
+                            offset -= 13;
+                            scoreTemp = scoreTemp/10;
+                        }
+                    }
+                    
+                    highscore = true;
+                    firstPress = true;
+                    clearOnce = 0;
                 }
-                highscore = true;
-                firstPress = true;
             }
 
             
             
             waitForVsync(); // swap front and back buffers on VGA vertical sync
             pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
+
+            for (int j = 0; j < N; j++) {
+                drawTileClear(xBox[j], yBox[j], DYBox);
+                yBox[j] += DYBox;
+            }
         }
         
                 
     }
-}
-//reverse a given integer all the way around
-int reverseNumber (int num) {
-    int remainder = 0;
-    int reversedNum = 0;
-    while (num!= 0) {
-        remainder = num % 10;
-        reversedNum = reversedNum*10 + remainder;
-        num/= 10;
-    }
-    return reversedNum;
 }
 
 //Draw the seg 7 display for the end screen
@@ -947,6 +984,7 @@ void drawSegNum(int number, int deltaX, int deltaY, short int color){
     //LeftBottom segment - drawBox(185+deltaX,180,3,8,color);
     //LeftTop segment - drawBox(185+deltaX,172,3,8,color);
     //Middle segment - drawBox(185+deltaX,179,11,2,color);
+    deltaX = deltaX + 26;
     switch(number) {
         case 9:
             drawBox(185+deltaX,172+deltaY,11,3,color);
@@ -1072,6 +1110,20 @@ void drawTile(int x0, int y0) {
     }
 }
 
+void drawTileClear(int x0, int y0, int dy) {
+    int xSize = 40;
+    int ySize = 60;
+    if(y0>=180){
+        ySize = heightGlobal-y0;
+    }
+
+    for (int x = x0; x <= xSize+x0 ; x++) {
+        for (int y = y0-ySize; y <= ySize+y0; y++) {
+            plotPixel(x, y, 0xFFFF);
+        }
+    }
+}
+
 void drawBox(int x0, int y0, int xSize, int ySize, short int color) {
     for (int x = x0; x <= x0+xSize; x++) {
         for (int y = y0; y <= y0+ySize; y++) {
@@ -1082,7 +1134,7 @@ void drawBox(int x0, int y0, int xSize, int ySize, short int color) {
 
 //draws the pixel at a specified coordinate on the VGA display
 void plotPixel(int x, int y, short int lineColor) {
-    if(x<widthGlobal&&y<heightGlobal)
+    if(x<widthGlobal&&y<heightGlobal&&x>=0&&y>=0)
         *(short int *)(pixelBufferStart + (y << 10) + (x << 1)) = lineColor;
 }
 
