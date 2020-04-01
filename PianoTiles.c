@@ -741,6 +741,7 @@ void drawBox(int x0, int y0, int xSize, int ySize, short int color);
 void drawLine(int x0, int y0, int x1, int y1, short int colour);
 void drawTitlePage();
 void drawEndPage();
+void drawHighscorePage();
 void drawTile(int x0, int y0);
 int* randomColumn();
 int checkTile(int keyPushed, int frontTile);
@@ -768,9 +769,6 @@ int main(void) {
 
     //Main game loop
     while (1) {
-
-        
-
         volatile int * pixelCtrlPtr = (int *)0xFF203020;
         int N = 4;
         int xBox[N], yBox[N];
@@ -779,7 +777,7 @@ int main(void) {
         int currentTile = 0;
         int keyPushedStore = 0;
         int keyPushed = 0;
-        int correct;
+        int correct = 0;
         int score = 0;
         bool gameEnd = false;
         bool firstPress = true;
@@ -834,7 +832,6 @@ int main(void) {
                 if(keyPushedStore)
                     DYBox = 10;
             }
-            
 
             if(yBox[0] >= heightGlobal){
                 currentTile++;
@@ -847,7 +844,6 @@ int main(void) {
                 }
             }
 
-
             //Wait for user to press one key to start
             while(firstPress == true){
                 keyPushed = *KEYPointer;
@@ -859,11 +855,11 @@ int main(void) {
             /*=========================================================*/
             /*=                   All Drawing Below                   =*/
             /*=========================================================*/
+            
             if((!gameEnd&&!animateTile) || clearOnce<2){
                 clearScreen();
                 clearOnce++;
             }
-            
 
             if(!gameEnd){
                 char textScore[40];
@@ -960,8 +956,6 @@ int main(void) {
                 }
             }
 
-            
-            
             waitForVsync(); // swap front and back buffers on VGA vertical sync
             pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
 
