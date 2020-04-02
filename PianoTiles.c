@@ -732,6 +732,7 @@ unsigned int highscorePage[] = {
 
 volatile int pixelBufferStart; // global variable
 volatile int * KEYPointer = (int *) 0xFF200050; //points to the KEYS on the board
+volatile int * KeyboardPointer = (int *) 0xFF200100; //reads data for the ps2 keyboard
 
 void swap(int *num1, int *num2);
 void plotPixel(int x, int y, short int line_color);
@@ -794,10 +795,6 @@ int main(void) {
             yBox[i] = abs(60*(i-(N-1)));
         }
 
-        while(keyPushed == 0) {
-            keyPushed = *KEYPointer;
-        }
-
         /* set front pixel buffer to start of FPGA On-chip memory */
         *(pixelCtrlPtr + 1) = 0xC8000000; // first store the address in the 
                                             // back buffer
@@ -807,6 +804,11 @@ int main(void) {
         pixelBufferStart = *pixelCtrlPtr;
         clearScreen(); // pixel_buffer_start points to the pixel buffer
         drawTitlePage();
+
+        while (keyPushed != 0x805a) {
+            keyPushed = *KeyboardPointer;
+        }
+
         /* set back pixel buffer to start of SDRAM memory */
         *(pixelCtrlPtr + 1) = 0xC0000000;
         pixelBufferStart = *(pixelCtrlPtr + 1); // we draw on the back buffer
@@ -816,12 +818,13 @@ int main(void) {
         drawText(3, 3, textScoreName); 
 
         while(!gameOver) {
-            while(keyPushed != 0) {
-            keyPushed = *KEYPointer;
+            keyPushed = 0;
+            while(keyPushed == 0) {
+                keyPushed = *KeyboardPointer;
             }
             
             while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
-                keyPushed = *KEYPointer; 
+                keyPushed = *KeyboardPointer; 
                 correct = checkTile(keyPushed, tilesPosition[currentTile]);
                 if(correct==1) {
                     keyPushedStore = 1;
@@ -846,7 +849,7 @@ int main(void) {
 
             //Wait for user to press one key to start
             while(firstPress == true){
-                keyPushed = *KEYPointer;
+                keyPushed = *KeyboardPointer;
                 if (keyPushed != 0){
                     firstPress = false;
                 }
@@ -893,7 +896,7 @@ int main(void) {
                 
                 if(animateY>=heightGlobal){
                     drawHighscorePage();
-
+                    waitForVsync();
                     if(score>highscores[0]){
                         highscores[4] = highscores[3];
                         highscores[3] = highscores[2];
@@ -928,9 +931,13 @@ int main(void) {
                         offsetX = -15;
                         offsetY += 26;
                     }
+                    while (keyPushed != 0x805a) {
+                        keyPushed = *KeyboardPointer;
+                    }
                     gameOver = true;
                 }
             }
+            
 
             if(gameEnd && !highscore){
                 animateX=animateX+30;
@@ -1073,15 +1080,15 @@ void drawStatus (int x0, int y0, bool correct, int keyPushedStore) {
 //checks if the user input matches the tile drawn on screen, 1 correct, -1 incorrect, 0 no input
 int checkTile (int keyPushed, int frontTile) {
     // KEY[3] pushed = 8, KEY[2] = 4, KEY[1] = 2, KEY[0] = 1
-    if(frontTile == 0 && keyPushed == 8) {
+    if(frontTile == 0 && keyPushed == 0x8015) {
         return 1;
-    } else if (frontTile == 1 && keyPushed == 4) {
+    } else if (frontTile == 1 && keyPushed == 0x801d) {
         return 1;
-    } else if (frontTile == 2 && keyPushed == 2) {
+    } else if (frontTile == 2 && keyPushed == 0x8024) {
         return 1;
-    } else if (frontTile == 3 && keyPushed == 1) {
+    } else if (frontTile == 3 && keyPushed == 0x802d) {
         return 1;
-    } else if (keyPushed==1||keyPushed==2||keyPushed==4||keyPushed==8){
+    } else if (keyPushed==0x8015||keyPushed==0x801d||keyPushed==0x8024||keyPushed==0x802d){
         return -1;
     } else {
         return 0;
