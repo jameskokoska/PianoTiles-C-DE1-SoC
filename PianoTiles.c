@@ -733,6 +733,7 @@ unsigned int highscorePage[] = {
 volatile int pixelBufferStart; // global variable
 volatile int * KEYPointer = (int *) 0xFF200050; //points to the KEYS on the board
 volatile int * KeyboardPointer = (int *) 0xFF200100; //reads data for the ps2 keyboard
+volatile int * pixelCtrlPtr = (int *)0xFF203020;
 
 void swap(int *num1, int *num2);
 void plotPixel(int x, int y, short int line_color);
@@ -767,27 +768,41 @@ int* randomColumn(){
 
 int main(void) {
     int highscores[] = {0,0,0,0,0}; 
-
+    int N = 4;
+    int xBox[N], yBox[N];
+    int DYBox = 0;
+    int* tilesPosition = randomColumn();
+    int currentTile = 0;
+    int keyPushedStore = 0;
+    int keyPushed = 0;
+    int correct = 0;
+    int score = 0;
+    bool gameEnd = false;
+    bool firstPress = true;
+    bool highscore = false;
+    int animateX = 0;
+    int animateY = 0;
+    bool gameOver = false;
+    int clearOnce = 0; //clears 2 buffers
+    bool animateTile = false;
+    
     //Main game loop
     while (1) {
-        volatile int * pixelCtrlPtr = (int *)0xFF203020;
-        int N = 4;
-        int xBox[N], yBox[N];
-        int DYBox = 0;
-        int* tilesPosition = randomColumn();
-        int currentTile = 0;
-        int keyPushedStore = 0;
-        int keyPushed = 0;
-        int correct = 0;
-        int score = 0;
-        bool gameEnd = false;
-        bool firstPress = true;
-        bool highscore = false;
-        int animateX = 0;
-        int animateY = 0;
-        bool gameOver = false;
-        int clearOnce = 0; //clears 2 buffers
-        bool animateTile = false;
+        DYBox = 0;
+        tilesPosition = randomColumn();
+        currentTile = 0;
+        keyPushedStore = 0;
+        keyPushed = 0;
+        correct = 0;
+        score = 0;
+        gameEnd = false;
+        firstPress = true;
+        highscore = false;
+        animateX = 0;
+        animateY = 0;
+        gameOver = false;
+        clearOnce = 0; //clears 2 buffers
+        animateTile = false;
         
         //Prepare tiles position
         for (int i = 0; i < N; i++) {
@@ -798,13 +813,19 @@ int main(void) {
         /* set front pixel buffer to start of FPGA On-chip memory */
         *(pixelCtrlPtr + 1) = 0xC8000000; // first store the address in the 
                                             // back buffer
-        /* now, swap the front/back buffers, to set the front buffer location */
-        waitForVsync();
+        
         /* initialize a pointer to the pixel buffer, used by drawing functions */
+
         pixelBufferStart = *pixelCtrlPtr;
         clearScreen(); // pixel_buffer_start points to the pixel buffer
         drawTitlePage();
+        /* now, swap the front/back buffers, to set the front buffer location */
+        waitForVsync();
 
+        for(int i = 0; i < 3; i++) {
+            keyPushed = *KeyboardPointer;
+        }
+        
         while (keyPushed != 0x805a) {
             keyPushed = *KeyboardPointer;
         }
@@ -934,6 +955,7 @@ int main(void) {
                     while (keyPushed != 0x805a) {
                         keyPushed = *KeyboardPointer;
                     }
+                    keyPushed = 0;
                     gameOver = true;
                 }
             }
@@ -960,8 +982,14 @@ int main(void) {
                     highscore = true;
                     firstPress = true;
                     clearOnce = 0;
+                    waitForVsync();
+                    while (keyPushed != 0x805a) {
+                        keyPushed = *KeyboardPointer;
+                    }
                 }
+                
             }
+            
 
             waitForVsync(); // swap front and back buffers on VGA vertical sync
             pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
