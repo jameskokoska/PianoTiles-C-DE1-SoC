@@ -734,6 +734,8 @@ volatile int pixelBufferStart; // global variable
 volatile int * KEYPointer = (int *) 0xFF200050; //points to the KEYS on the board
 volatile int * KeyboardPointer = (int *) 0xFF200100; //reads data for the ps2 keyboard
 volatile int * pixelCtrlPtr = (int *)0xFF203020;
+volatile int * a9TimerPtr = (int *) 0xFFFEC600;
+volatile int * HEXptr = (int *) 0xFF200020;
 
 void swap(int *num1, int *num2);
 void plotPixel(int x, int y, short int line_color);
@@ -752,6 +754,8 @@ void drawText(int x, int y, char * textPtr);
 void drawSegNum(int number, int deltaX, int deltaY, short int color);
 void animateHighscore(int x0, int y0, int xSize, int ySize);
 void drawTileClear(int x0, int y0, int dy);
+void timerCheck();
+
 
 int widthGlobal = 320;
 int heightGlobal = 240;
@@ -768,6 +772,7 @@ int* randomColumn(){
 
 int main(void) {
     int highscores[] = {0,0,0,0,0}; 
+    char seg7[] = {0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01100111};
     int N = 4;
     int xBox[N], yBox[N];
     int DYBox = 0;
@@ -785,7 +790,10 @@ int main(void) {
     bool gameOver = false;
     int clearOnce = 0; //clears 2 buffers
     bool animateTile = false;
-    
+    int timer = 30;
+    *a9TimerPtr = 200000000; //sets up the timer to have a 1s delay
+    *(a9TimerPtr + 2) = 0b011; // sets I,A, and E bits in the timer
+
     //Main game loop
     while (1) {
         DYBox = 0;
@@ -803,7 +811,8 @@ int main(void) {
         gameOver = false;
         clearOnce = 0; //clears 2 buffers
         animateTile = false;
-        
+        timer = 30;
+
         //Prepare tiles position
         for (int i = 0; i < N; i++) {
             xBox[i] = 80+tilesPosition[currentTile+i]*40;
@@ -822,10 +831,12 @@ int main(void) {
         /* now, swap the front/back buffers, to set the front buffer location */
         waitForVsync();
 
+        //clears the existing inputs in the FIFO by reading them
         for(int i = 0; i < 3; i++) {
             keyPushed = *KeyboardPointer;
         }
         
+        //waits for user to hit Enter to proceed
         while (keyPushed != 0x805a) {
             keyPushed = *KeyboardPointer;
         }
@@ -839,9 +850,16 @@ int main(void) {
         drawText(3, 3, textScoreName); 
 
         while(!gameOver) {
+            if (timer <= 0) {
+                gameEnd = true;
+                timer = 30;
+            }
             keyPushed = 0;
             while(keyPushed == 0) {
                 keyPushed = *KeyboardPointer;
+                //timerCheck();
+                // timer--;
+                // *HEXptr = seg7[timer % 10] | seg7[timer/ 10] << 8;
             }
             
             while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
@@ -982,6 +1000,7 @@ int main(void) {
                     highscore = true;
                     firstPress = true;
                     clearOnce = 0;
+                    timer = 30;
                     waitForVsync();
                     while (keyPushed != 0x805a) {
                         keyPushed = *KeyboardPointer;
@@ -1139,6 +1158,7 @@ void drawTile(int x0, int y0) {
     }
 }
 
+//clear the drawn tiles
 void drawTileClear(int x0, int y0, int dy) {
     int xSize = 40;
     int ySize = 60;
@@ -1225,6 +1245,15 @@ void drawHighscorePage() {
             j += 1;
         }
     }
+}
+
+//waits for the timer to sest the F bit to 1, indicating that a second has passed
+void timerCheck() {
+    int fBit = *(a9TimerPtr + 3);
+    while (fBit == 0) {
+        fBit = *(a9TimerPtr + 3);
+    }
+    *(a9TimerPtr + 3) = fBit;
 }
 
 
