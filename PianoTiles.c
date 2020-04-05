@@ -920,6 +920,8 @@ int main(void) {
                     animateTile = true;
                 }
 
+               
+
                 if(!gameEnd){
                     char textScore[40];
                     sprintf(textScore, "%d", score); 
@@ -928,6 +930,11 @@ int main(void) {
 
                     //Text background
                     drawBox(10,10,39,6,0xF800);
+                    
+                    drawText(25, 58, "Q\0");
+                    drawText(25+10*1, 58, "W\0");
+                    drawText(25+10*2, 58, "E\0");
+                    drawText(25+10*3, 58, "R\0");
 
                     for (int j = 0; j < N; j++) {
                         //draws the tile in black
