@@ -791,6 +791,7 @@ int main(void) {
     int clearOnce = 0; //clears 2 buffers
     bool animateTile = false;
     int timer = 30;
+    int animate = 0;
     *a9TimerPtr = 200000000; //sets up the timer to have a 1s delay
     *(a9TimerPtr + 2) = 0b011; // sets I,A, and E bits in the timer
 
@@ -812,7 +813,7 @@ int main(void) {
         clearOnce = 0; //clears 2 buffers
         animateTile = false;
         timer = 30;
-
+        animate = 0;
         //Prepare tiles position
         for (int i = 0; i < N; i++) {
             xBox[i] = 80+tilesPosition[currentTile+i]*40;
@@ -850,176 +851,190 @@ int main(void) {
         drawText(3, 3, textScoreName); 
 
         while(!gameOver) {
-            if (timer <= 0) {
-                gameEnd = true;
-                timer = 30;
-            }
-            keyPushed = 0;
-            while(keyPushed == 0) {
-                keyPushed = *KeyboardPointer;
-                //timerCheck();
-                // timer--;
-                // *HEXptr = seg7[timer % 10] | seg7[timer/ 10] << 8;
-            }
-            
-            while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
-                keyPushed = *KeyboardPointer; 
-                correct = checkTile(keyPushed, tilesPosition[currentTile]);
-                if(correct==1) {
-                    keyPushedStore = 1;
-                } else if (correct==-1){
+            int fBit = *(a9TimerPtr + 3);
+            fBit = 0;
+            while (fBit == 0) {
+                fBit = *(a9TimerPtr + 3);
+
+                if (timer <= 0) {
                     gameEnd = true;
-                    break;
+                    timer = 30;
                 }
-                if(keyPushedStore)
-                    DYBox = 10;
-            }
 
-            if(yBox[0] >= heightGlobal){
-                currentTile++;
-                score++;
-                keyPushedStore = 0;
-                DYBox = 0;
-                for (int i = 0; i < N; i++) {
-                    xBox[i] = 80+tilesPosition[currentTile+i]*40;
-                    yBox[i] = abs(60*(i-(N-1)));
+                keyPushed = 0;
+
+                while(keyPushed == 0) {
+                    keyPushed = *KeyboardPointer;
+                    if(animate > 3) {
+                        timerCheck(0);
+                        *HEXptr = seg7[timer % 10] | seg7[timer/ 10] << 8;
+                        timer --;
+                    }
+                    
                 }
-            }
-
-            //Wait for user to press one key to start
-            while(firstPress == true){
-                keyPushed = *KeyboardPointer;
-                if (keyPushed != 0){
-                    firstPress = false;
-                }
-            }
-
-            /*=========================================================*/
-            /*=                   All Drawing Below                   =*/
-            /*=========================================================*/
-            
-            if((!gameEnd&&!animateTile) || clearOnce<2){
-                clearScreen();
-                clearOnce++;
-            }
-
-            if(!gameEnd){
-                char textScore[40];
-                sprintf(textScore, "%d", score); 
-                char textScoreName[40] ="Score: ";
-                drawText(3, 3, strcat(textScoreName, textScore)); 
-
-                //Text background
-                drawBox(10,10,39,6,0xF800);
-
-                for (int j = 0; j < N; j++) {
-                    //draws the tile in black
-                    drawTile(xBox[j], yBox[j]);
-                    yBox[j] += DYBox;
-                }
-                animateTile = true;
-
-                //draws red or green based on if the user input was correct
-                drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
-            }
-
-
-            if(highscore){
-                animateY=animateY+30;
-                drawBox(0,0,widthGlobal,animateY,0xF800);
-
-                char textScore[40];
-                sprintf(textScore, "%d", score); 
-                char textScoreName[40] ="Your score: ";
-                drawText(3, 3, strcat(textScoreName, textScore)); 
                 
-                if(animateY>=heightGlobal){
-                    drawHighscorePage();
-                    waitForVsync();
-                    if(score>highscores[0]){
-                        highscores[4] = highscores[3];
-                        highscores[3] = highscores[2];
-                        highscores[2] = highscores[1];
-                        highscores[1] = highscores[0];
-                        highscores[0] = score;
-                    } else if (score>highscores[1]){
-                        highscores[4] = highscores[3];
-                        highscores[3] = highscores[2];
-                        highscores[2] = highscores[1];
-                        highscores[1] = score;
-                    } else if (score>highscores[2]){
-                        highscores[4] = highscores[3];
-                        highscores[3] = highscores[2];
-                        highscores[2] = score;
-                    } else if (score>highscores[3]){
-                        highscores[4] = highscores[3];
-                        highscores[3] = score;
-                    } else if (score>highscores[4]){
-                        highscores[4] = score;
+                while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
+                    keyPushed = *KeyboardPointer; 
+                    correct = checkTile(keyPushed, tilesPosition[currentTile]);
+                    animate = 0;
+                    if(correct==1) {
+                        keyPushedStore = 1;
+                    } else if (correct==-1){
+                        gameEnd = true;
+                        break;
                     }
-                    int offsetX = -15;
-                    int offsetY = -106;
-                    int scoreTemp;
-                    for(int i=0; i < 5; i++){
-                        scoreTemp = highscores[i];
-                        while(scoreTemp){
-                            drawSegNum(scoreTemp%10,offsetX,offsetY,0x0000);
-                            offsetX -= 13;
-                            scoreTemp = scoreTemp/10;
-                        }
-                        offsetX = -15;
-                        offsetY += 26;
-                    }
-                    while (keyPushed != 0x805a) {
-                        keyPushed = *KeyboardPointer;
-                    }
-                    keyPushed = 0;
-                    gameOver = true;
+                    if(keyPushedStore)
+                        DYBox = 10;
                 }
-            }
-            
 
-            if(gameEnd && !highscore){
-                animateX=animateX+30;
-                drawBox(xBox[0]-animateX/2, yBox[0],animateX,60,0xF800);
-                drawBox(10,10,39,6,0xF800);
-                if(animateX>=widthGlobal){
-                    drawEndPage();
-                    int offset = 0;
-                    if (score==0){
-                        drawSegNum(0,offset,0,0x0000);
-                    } else {
-                        int scoreTemp = score;
-                        while(scoreTemp){
-                            drawSegNum(scoreTemp%10,offset,0,0x0000);
-                            offset -= 13;
-                            scoreTemp = scoreTemp/10;
+                if(yBox[0] >= heightGlobal){
+                    currentTile++;
+                    score++;
+                    keyPushedStore = 0;
+                    DYBox = 0;
+                    for (int i = 0; i < N; i++) {
+                        xBox[i] = 80+tilesPosition[currentTile+i]*40;
+                        yBox[i] = abs(60*(i-(N-1)));
+                    }
+                }
+
+                //Wait for user to press one key to start
+                while(firstPress == true){
+                    keyPushed = *KeyboardPointer;
+                    if (keyPushed != 0){
+                        firstPress = false;
+                    }
+                }
+
+                /*=========================================================*/
+                /*=                   All Drawing Below                   =*/
+                /*=========================================================*/
+                
+                if((!gameEnd&&!animateTile) || clearOnce<2){
+                    clearScreen();
+                    clearOnce++;
+                }
+
+                if(!gameEnd){
+                    char textScore[40];
+                    sprintf(textScore, "%d", score); 
+                    char textScoreName[40] ="Score: ";
+                    drawText(3, 3, strcat(textScoreName, textScore)); 
+
+                    //Text background
+                    drawBox(10,10,39,6,0xF800);
+
+                    for (int j = 0; j < N; j++) {
+                        //draws the tile in black
+                        drawTile(xBox[j], yBox[j]);
+                        yBox[j] += DYBox;
+                    }
+                    animateTile = true;
+                    animate++;
+                    //draws red or green based on if the user input was correct
+                    drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
+                }
+
+
+                if(highscore){
+                    animateY=animateY+30;
+                    drawBox(0,0,widthGlobal,animateY,0xF800);
+
+                    char textScore[40];
+                    sprintf(textScore, "%d", score); 
+                    char textScoreName[40] ="Your score: ";
+                    drawText(3, 3, strcat(textScoreName, textScore)); 
+                    
+                    if(animateY>=heightGlobal){
+                        drawHighscorePage();
+                        waitForVsync();
+                        if(score>highscores[0]){
+                            highscores[4] = highscores[3];
+                            highscores[3] = highscores[2];
+                            highscores[2] = highscores[1];
+                            highscores[1] = highscores[0];
+                            highscores[0] = score;
+                        } else if (score>highscores[1]){
+                            highscores[4] = highscores[3];
+                            highscores[3] = highscores[2];
+                            highscores[2] = highscores[1];
+                            highscores[1] = score;
+                        } else if (score>highscores[2]){
+                            highscores[4] = highscores[3];
+                            highscores[3] = highscores[2];
+                            highscores[2] = score;
+                        } else if (score>highscores[3]){
+                            highscores[4] = highscores[3];
+                            highscores[3] = score;
+                        } else if (score>highscores[4]){
+                            highscores[4] = score;
+                        }
+                        int offsetX = -15;
+                        int offsetY = -106;
+                        int scoreTemp;
+                        for(int i=0; i < 5; i++){
+                            scoreTemp = highscores[i];
+                            while(scoreTemp){
+                                drawSegNum(scoreTemp%10,offsetX,offsetY,0x0000);
+                                offsetX -= 13;
+                                scoreTemp = scoreTemp/10;
+                            }
+                            offsetX = -15;
+                            offsetY += 26;
+                        }
+                        while (keyPushed != 0x805a) {
+                            keyPushed = *KeyboardPointer;
+                        }
+                        keyPushed = 0;
+                        gameOver = true;
+                    }
+                }
+                
+
+                if(gameEnd && !highscore){
+                    animateX=animateX+30;
+                    drawBox(xBox[0]-animateX/2, yBox[0],animateX,60,0xF800);
+                    drawBox(10,10,39,6,0xF800);
+                    if(animateX>=widthGlobal){
+                        drawEndPage();
+                        int offset = 0;
+                        if (score==0){
+                            drawSegNum(0,offset,0,0x0000);
+                        } else {
+                            int scoreTemp = score;
+                            while(scoreTemp){
+                                drawSegNum(scoreTemp%10,offset,0,0x0000);
+                                offset -= 13;
+                                scoreTemp = scoreTemp/10;
+                            }
+                        }
+                        
+                        highscore = true;
+                        firstPress = true;
+                        clearOnce = 0;
+                        timer = 30;
+                        waitForVsync();
+                        while (keyPushed != 0x805a) {
+                            keyPushed = *KeyboardPointer;
                         }
                     }
                     
-                    highscore = true;
-                    firstPress = true;
-                    clearOnce = 0;
-                    timer = 30;
-                    waitForVsync();
-                    while (keyPushed != 0x805a) {
-                        keyPushed = *KeyboardPointer;
-                    }
                 }
                 
-            }
-            
 
-            waitForVsync(); // swap front and back buffers on VGA vertical sync
-            pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
+                waitForVsync(); // swap front and back buffers on VGA vertical sync
+                pixelBufferStart = *(pixelCtrlPtr + 1); // new back buffer
 
-            for (int j = 0; j < N; j++) {
-                drawTileClear(xBox[j], yBox[j], DYBox);
-                yBox[j] += DYBox;
+                for (int j = 0; j < N; j++) {
+                    drawTileClear(xBox[j], yBox[j], DYBox);
+                    yBox[j] += DYBox;
+                }
             }
+            *(a9TimerPtr + 3) = fBit;
+            *HEXptr = seg7[timer % 10] | seg7[timer/ 10] << 8;
+            timer --;
         }
         
-                
     }
 }
 
