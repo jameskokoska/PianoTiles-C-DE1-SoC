@@ -912,9 +912,12 @@ int main(void) {
                 /*=                   All Drawing Below                   =*/
                 /*=========================================================*/
                 
+                
+
                 if((!gameEnd&&!animateTile) || clearOnce<2){
                     clearScreen();
                     clearOnce++;
+                    animateTile = true;
                 }
 
                 if(!gameEnd){
