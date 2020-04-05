@@ -794,6 +794,7 @@ int main(void) {
     int animate = 0;
     *a9TimerPtr = 200000000; //sets up the timer to have a 1s delay
     *(a9TimerPtr + 2) = 0b011; // sets I,A, and E bits in the timer
+    int animateTileCount;
 
     //Main game loop
     while (1) {
@@ -814,6 +815,7 @@ int main(void) {
         animateTile = false;
         timer = 30;
         animate = 0;
+        animateTileCount = 0;
         //Prepare tiles position
         for (int i = 0; i < N; i++) {
             xBox[i] = 80+tilesPosition[currentTile+i]*40;
@@ -865,7 +867,7 @@ int main(void) {
 
                 while(keyPushed == 0) {
                     keyPushed = *KeyboardPointer;
-                    if(animate > 3) {
+                    if(animate > 2) {
                         timerCheck(0);
                         *HEXptr = seg7[timer % 10] | seg7[timer/ 10] << 8;
                         timer --;
@@ -930,6 +932,11 @@ int main(void) {
                         yBox[j] += DYBox;
                     }
                     animateTile = true;
+                    if(animateTileCount == 4){
+                        animateTile = false;
+                        animateTileCount = 0;
+                    }
+                    animateTileCount++;
                     animate++;
                     //draws red or green based on if the user input was correct
                     drawStatus(xBox[0], yBox[0] - DYBox, correct, keyPushedStore);
@@ -1177,12 +1184,13 @@ void drawTile(int x0, int y0) {
 void drawTileClear(int x0, int y0, int dy) {
     int xSize = 40;
     int ySize = 60;
+    int yBuffer = 20;
     if(y0>=180){
         ySize = heightGlobal-y0;
     }
 
     for (int x = x0; x <= xSize+x0 ; x++) {
-        for (int y = y0-ySize; y <= ySize+y0; y++) {
+        for (int y = y0-ySize-yBuffer; y <= ySize+y0+yBuffer; y++) {
             plotPixel(x, y, 0xFFFF);
         }
     }
