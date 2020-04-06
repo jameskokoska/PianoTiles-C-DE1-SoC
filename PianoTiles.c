@@ -775,6 +775,8 @@ int* randomSurprise(){
     for (int i=0; i<100; i++){
         if(rand() % 2 == 1){
             array[i] = 1;
+        } else if (rand() % 3 == 1){
+             array[i] = 2;
         } else {
             array[i] = 0;
         }
@@ -893,7 +895,10 @@ int main(void) {
                         }
                         *HEXptr = seg7[timer % 10] | seg7[timer/ 10] << 8;
                         timer --;
-                    }  
+                    }
+                    if (gamemode == 2 && tilesSurprise[currentTile] == 1){
+                        break;
+                    }
                 }
                 
                 while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
@@ -906,7 +911,9 @@ int main(void) {
                         gameEnd = true;
                         break;
                     }
-                    if(keyPushedStore){
+                    if (tilesSurprise[currentTile]==1 && gamemode == 2){
+                        DYBox = 60;
+                    } else if(keyPushedStore){
                         DYBox = 10;
                     }
                 }
@@ -940,11 +947,12 @@ int main(void) {
                     clearScreen();
                     clearOnce++;
                     animateTile = true;
+                } else if (gamemode==2&&!gameEnd&&!animateTile){
+                    drawBox(80, 240-60,40*4,60,0xFFFF);
                 } else if (!gameEnd&&!animateTile){
                     drawBox(80, 240-20,40*4,20,0xFFFF);
                 }
 
-               
 
                 if(!gameEnd){
                     char textScore[40];
@@ -964,6 +972,8 @@ int main(void) {
                         //draws the tile in black
                         
                         if(gamemode == 2 && tilesSurprise[currentTile+j]==1)
+                            drawTile(xBox[j], yBox[j], 0x8FEA);
+                        else if(gamemode == 2 && tilesSurprise[currentTile+j]==2)
                             drawTile(xBox[j], yBox[j], 0x52DF);
                         else if (gamemode == 1 || tilesSurprise[currentTile+j]==0)
                             drawTile(xBox[j], yBox[j], 0x0000);
@@ -974,6 +984,8 @@ int main(void) {
                     if(animateTileCount == 4){
                         animateTile = false;
                         animateTileCount = 0;
+                    } else if (tilesSurprise[currentTile]==1 && gamemode == 2){
+                        animateTile = false;
                     }
                     animateTileCount++;
                     animate++;
@@ -1195,6 +1207,8 @@ void drawStatus (int x0, int y0, bool correct, int keyPushedStore) {
 int checkTile (int keyPushed, int frontTile, int gamemode, int frontTilesSurprise) {
     // KEY[3] pushed = 8, KEY[2] = 4, KEY[1] = 2, KEY[0] = 1
     if(gamemode == 2 && frontTilesSurprise==1){
+        return 1;
+    } else if (gamemode == 2 && frontTilesSurprise==2){
         return 1;
     } else if(frontTile == 0 && keyPushed == 0x8015) {
         return 1;
