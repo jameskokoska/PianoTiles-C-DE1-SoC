@@ -748,7 +748,7 @@ void drawEndPage();
 void drawHighscorePage();
 void drawTile(int x0, int y0, short int color);
 int* randomColumn();
-int checkTile(int keyPushed, int frontTile);
+int checkTile (int keyPushed, int frontTile, int gamemode, int frontTilesSurprise);
 void drawStatus (int x0, int y0, bool correct, int keyPushedStore);
 void drawText(int x, int y, char * textPtr);
 void drawSegNum(int number, int deltaX, int deltaY, short int color);
@@ -898,7 +898,7 @@ int main(void) {
                 
                 while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
                     keyPushed = *KeyboardPointer; 
-                    correct = checkTile(keyPushed, tilesPosition[currentTile]);
+                    correct = checkTile(keyPushed, tilesPosition[currentTile], gamemode, tilesSurprise[currentTile]);
                     animate = 0;
                     if(correct==1) {
                         keyPushedStore = 1;
@@ -1192,9 +1192,11 @@ void drawStatus (int x0, int y0, bool correct, int keyPushedStore) {
 }
 
 //checks if the user input matches the tile drawn on screen, 1 correct, -1 incorrect, 0 no input
-int checkTile (int keyPushed, int frontTile) {
+int checkTile (int keyPushed, int frontTile, int gamemode, int frontTilesSurprise) {
     // KEY[3] pushed = 8, KEY[2] = 4, KEY[1] = 2, KEY[0] = 1
-    if(frontTile == 0 && keyPushed == 0x8015) {
+    if(gamemode == 2 && frontTilesSurprise==1){
+        return 1;
+    } else if(frontTile == 0 && keyPushed == 0x8015) {
         return 1;
     } else if (frontTile == 1 && keyPushed == 0x801d) {
         return 1;
