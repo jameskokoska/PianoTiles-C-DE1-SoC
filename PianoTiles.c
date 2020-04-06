@@ -906,8 +906,9 @@ int main(void) {
                         gameEnd = true;
                         break;
                     }
-                    if(keyPushedStore)
+                    if(keyPushedStore){
                         DYBox = 10;
+                    }
                 }
 
                 if(yBox[0] >= heightGlobal){
@@ -935,10 +936,12 @@ int main(void) {
                 
                 
 
-                if((!gameEnd&&!animateTile) || clearOnce<2){
+                if(clearOnce<2){
                     clearScreen();
                     clearOnce++;
                     animateTile = true;
+                } else if (!gameEnd&&!animateTile){
+                    drawBox(80, 240-20,40*4,20,0xFFFF);
                 }
 
                
