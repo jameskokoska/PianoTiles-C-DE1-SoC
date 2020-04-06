@@ -746,7 +746,7 @@ void drawLine(int x0, int y0, int x1, int y1, short int colour);
 void drawTitlePage();
 void drawEndPage();
 void drawHighscorePage();
-void drawTile(int x0, int y0);
+void drawTile(int x0, int y0, short int color);
 int* randomColumn();
 int checkTile(int keyPushed, int frontTile);
 void drawStatus (int x0, int y0, bool correct, int keyPushedStore);
@@ -765,7 +765,20 @@ int* randomColumn(){
     static int array[100];
     for (int i=0; i<100; i++){
         array[i] = rand() % 4;
-        //printf("%d",array[i]);
+    }
+    return array;
+}
+
+//generates a list from [0]->[99] of random numbers between 0-3
+int* randomSurprise(){
+    static int array[100];
+    for (int i=0; i<100; i++){
+        if(rand() % 2 == 1){
+            array[i] = 1;
+        } else {
+            array[i] = 0;
+        }
+        printf("%d",array[i]);
     }
     return array;
 }
@@ -777,6 +790,7 @@ int main(void) {
     int xBox[N], yBox[N];
     int DYBox = 0;
     int* tilesPosition = randomColumn();
+    int* tilesSurprise = randomSurprise();
     int currentTile = 0;
     int keyPushedStore = 0;
     int keyPushed = 0;
@@ -796,11 +810,13 @@ int main(void) {
     *a9TimerPtr = 200000000; //sets up the timer to have a 1s delay
     *(a9TimerPtr + 2) = 0b011; // sets I,A, and E bits in the timer
     int animateTileCount;
+    int gamemode = 2;
 
     //Main game loop
     while (1) {
         DYBox = 0;
         tilesPosition = randomColumn();
+        tilesSurprise = randomSurprise();
         currentTile = 0;
         keyPushedStore = 0;
         keyPushed = 0;
@@ -943,7 +959,12 @@ int main(void) {
 
                     for (int j = 0; j < N; j++) {
                         //draws the tile in black
-                        drawTile(xBox[j], yBox[j]);
+                        
+                        if(gamemode == 2 && tilesSurprise[currentTile+j]==1)
+                            drawTile(xBox[j], yBox[j], 0x52DF);
+                        else if (gamemode == 1 || tilesSurprise[currentTile+j]==0)
+                            drawTile(xBox[j], yBox[j], 0x0000);
+
                         yBox[j] += DYBox;
                     }
                     animateTile = true;
@@ -1152,7 +1173,7 @@ void drawStatus (int x0, int y0, bool correct, int keyPushedStore) {
     for (int x = x0; x <= xSize+x0 ; x++) {
         for (int y = y0; y <= ySize+y0; y++) {
             if(!correct||keyPushedStore!=1) {
-                plotPixel(x, y, 0xF800);
+                break;
             }
             else {
                 plotPixel(x, y, 0x07E0);
@@ -1181,7 +1202,7 @@ int checkTile (int keyPushed, int frontTile) {
 
 //draws the piano tile where specified in black, give start coordinates of top left
 //and ensure the size doesn't go off screen on the bottom
-void drawTile(int x0, int y0) {
+void drawTile(int x0, int y0, short int color) {
     int xSize = 40;
     int ySize = 60;
     if(y0>=180){
@@ -1190,7 +1211,7 @@ void drawTile(int x0, int y0) {
 
     for (int x = x0; x <= xSize+x0 ; x++) {
         for (int y = y0; y <= ySize+y0; y++) {
-            plotPixel(x, y, 0x0000);
+            plotPixel(x, y, color);
         }
     }
 }
