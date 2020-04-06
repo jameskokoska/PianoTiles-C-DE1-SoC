@@ -774,11 +774,9 @@ int* randomSurprise(){
     static int array[100];
     for (int i=0; i<100; i++){
         if(rand() % 2 == 1){
-            array[i] = 1;
-        } else if (rand() % 3 == 1){
-             array[i] = 2;
+            array[i] = rand() % 4+1;
         } else {
-            array[i] = 0;
+            array[i] = 4;
         }
         printf("%d",array[i]);
     }
@@ -813,6 +811,7 @@ int main(void) {
     *(a9TimerPtr + 2) = 0b011; // sets I,A, and E bits in the timer
     int animateTileCount;
     int gamemode = 2;
+    bool shuffle = false;
 
     //Main game loop
     while (1) {
@@ -835,6 +834,7 @@ int main(void) {
         timer = 30;
         animate = 0;
         animateTileCount = 0;
+        shuffle = false;
         //Prepare tiles position
         for (int i = 0; i < N; i++) {
             xBox[i] = 80+tilesPosition[currentTile+i]*40;
@@ -910,6 +910,9 @@ int main(void) {
                     } else if (correct==-1){
                         gameEnd = true;
                         break;
+                    } else if (gamemode == 2 && correct == 2 && tilesSurprise[currentTile]==4){
+                        keyPushedStore = 1;
+                        score++;
                     }
                     if (tilesSurprise[currentTile]==1 && gamemode == 2){
                         DYBox = 60;
@@ -963,10 +966,18 @@ int main(void) {
                     //Text background
                     drawBox(10,10,39,6,0xF800);
                     
-                    drawText(25, 58, "Q\0");
-                    drawText(25+10*1, 58, "W\0");
-                    drawText(25+10*2, 58, "E\0");
-                    drawText(25+10*3, 58, "R\0");
+                    if(gamemode == 2 && tilesSurprise[currentTile] == 3){
+                        drawText(25, 58, "R\0");
+                        drawText(25+10*1, 58, "E\0");
+                        drawText(25+10*2, 58, "W\0");
+                        drawText(25+10*3, 58, "Q\0");
+                    } else {
+                        drawText(25, 58, "Q\0");
+                        drawText(25+10*1, 58, "W\0");
+                        drawText(25+10*2, 58, "E\0");
+                        drawText(25+10*3, 58, "R\0");
+                    }
+                    
 
                     for (int j = 0; j < N; j++) {
                         //draws the tile in black
@@ -975,6 +986,10 @@ int main(void) {
                             drawTile(xBox[j], yBox[j], 0x8FEA);
                         else if(gamemode == 2 && tilesSurprise[currentTile+j]==2)
                             drawTile(xBox[j], yBox[j], 0x52DF);
+                        else if(gamemode == 2 && tilesSurprise[currentTile+j]==3)
+                            drawTile(xBox[j], yBox[j], 0xD197);
+                        else if(gamemode == 2 && tilesSurprise[currentTile+j]==4)
+                            drawTile(xBox[j], yBox[j], 0xFC40);
                         else if (gamemode == 1 || tilesSurprise[currentTile+j]==0)
                             drawTile(xBox[j], yBox[j], 0x0000);
 
@@ -1210,15 +1225,41 @@ int checkTile (int keyPushed, int frontTile, int gamemode, int frontTilesSurpris
         return 1;
     } else if (gamemode == 2 && frontTilesSurprise==2){
         return 1;
-    } else if(frontTile == 0 && keyPushed == 0x8015) {
+    } else if (gamemode == 2  && frontTile == 0 && keyPushed == 0x802d && frontTilesSurprise==3){
         return 1;
-    } else if (frontTile == 1 && keyPushed == 0x801d) {
+    } else if (gamemode == 2  && frontTile == 1 && keyPushed == 0x8024 && frontTilesSurprise==3){
         return 1;
-    } else if (frontTile == 2 && keyPushed == 0x8024) {
+    } else if (gamemode == 2  && frontTile == 2 && keyPushed == 0x801d && frontTilesSurprise==3){
         return 1;
-    } else if (frontTile == 3 && keyPushed == 0x802d) {
+    } else if (gamemode == 2  && frontTile == 3 && keyPushed == 0x8015 && frontTilesSurprise==3){
         return 1;
-    } else if (keyPushed==0x8015||keyPushed==0x801d||keyPushed==0x8024||keyPushed==0x802d){
+    } else if (gamemode == 2 && frontTile == 0 && keyPushed == 0x8015  && frontTilesSurprise==4) {
+        return 2;
+    } else if (gamemode == 2 && frontTile == 1 && keyPushed == 0x801d && frontTilesSurprise==4) {
+        return 2;
+    } else if (gamemode == 2 && frontTile == 2 && keyPushed == 0x8024 && frontTilesSurprise==4) {
+        return 2;
+    } else if (gamemode == 2 && frontTile == 3 && keyPushed == 0x802d && frontTilesSurprise==4) {
+        return 2;
+    } else if (gamemode == 2 && frontTile == 0 && keyPushed == 0x8015  && frontTilesSurprise==0) {
+        return 1;
+    } else if (gamemode == 2 && frontTile == 1 && keyPushed == 0x801d && frontTilesSurprise==0) {
+        return 1;
+    } else if (gamemode == 2 && frontTile == 2 && keyPushed == 0x8024 && frontTilesSurprise==0) {
+        return 1;
+    } else if (gamemode == 2 && frontTile == 3 && keyPushed == 0x802d && frontTilesSurprise==0) {
+        return 1;
+    } else if (gamemode == 2 && (keyPushed==0x8015||keyPushed==0x801d||keyPushed==0x8024||keyPushed==0x802d) && (frontTilesSurprise==0||frontTilesSurprise==3)){
+        return -1;
+    } else if (gamemode == 1 && frontTile == 0 && keyPushed == 0x8015) {
+        return 1;
+    } else if (gamemode == 1 && frontTile == 1 && keyPushed == 0x801d) {
+        return 1;
+    } else if (gamemode == 1 && frontTile == 2 && keyPushed == 0x8024) {
+        return 1;
+    } else if (gamemode == 1 && frontTile == 3 && keyPushed == 0x802d) {
+        return 1;
+    } else if (gamemode == 1 && (keyPushed==0x8015||keyPushed==0x801d||keyPushed==0x8024||keyPushed==0x802d)){
         return -1;
     } else {
         return 0;
