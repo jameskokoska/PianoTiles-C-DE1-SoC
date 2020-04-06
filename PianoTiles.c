@@ -754,7 +754,7 @@ void drawText(int x, int y, char * textPtr);
 void drawSegNum(int number, int deltaX, int deltaY, short int color);
 void animateHighscore(int x0, int y0, int xSize, int ySize);
 void drawTileClear(int x0, int y0, int dy);
-void timerCheck();
+int timerCheck();
 
 
 int widthGlobal = 320;
@@ -792,6 +792,7 @@ int main(void) {
     bool animateTile = false;
     int timer = 30;
     int animate = 0;
+    bool checkTimer = true;
     *a9TimerPtr = 200000000; //sets up the timer to have a 1s delay
     *(a9TimerPtr + 2) = 0b011; // sets I,A, and E bits in the timer
     int animateTileCount;
@@ -839,10 +840,6 @@ int main(void) {
             keyPushed = *KeyboardPointer;
         }
         
-        //waits for user to hit Enter to proceed
-        while (keyPushed != 0x805a) {
-            keyPushed = *KeyboardPointer;
-        }
 
         /* set back pixel buffer to start of SDRAM memory */
         *(pixelCtrlPtr + 1) = 0xC0000000;
@@ -853,8 +850,8 @@ int main(void) {
         drawText(3, 3, textScoreName); 
 
         while(!gameOver) {
-            int fBit = *(a9TimerPtr + 3);
-            fBit = 0;
+            int fBit = 0;
+            checkTimer = true;
             while (fBit == 0) {
                 fBit = *(a9TimerPtr + 3);
 
@@ -863,16 +860,24 @@ int main(void) {
                     timer = 30;
                 }
 
-                keyPushed = 0;
+                if (animate > 3) {
+                    keyPushed = 0;
+                }
+                
 
-                while(keyPushed == 0) {
+                while((keyPushed != 0x8015 && keyPushed != 0x801d && keyPushed != 0x8024 && keyPushed != 0x802d) && !gameEnd) {
                     keyPushed = *KeyboardPointer;
-                    if(animate > 2) {
-                        timerCheck(0);
+                    if(animate > 3) {
+                         //clears the existing inputs in the FIFO by reading them
+                        for(int i = 0; i < 3; i++) {
+                            keyPushed = *KeyboardPointer;
+                        }
+                        if(timerCheck() == 1) {
+                            break;
+                        }
                         *HEXptr = seg7[timer % 10] | seg7[timer/ 10] << 8;
                         timer --;
-                    }
-                    
+                    }  
                 }
                 
                 while(keyPushedStore == 0 && firstPress != true && gameEnd==false){
@@ -1281,12 +1286,18 @@ void drawHighscorePage() {
 }
 
 //waits for the timer to sest the F bit to 1, indicating that a second has passed
-void timerCheck() {
-    int fBit = *(a9TimerPtr + 3);
+int timerCheck() {
+    int fBit = 0;
+    int keyPushed = 0;
     while (fBit == 0) {
         fBit = *(a9TimerPtr + 3);
+        keyPushed = *KeyboardPointer;
+        if (keyPushed == 0x8015 || keyPushed == 0x801d || keyPushed == 0x8024 || keyPushed == 0x802d) {
+            return 1;
+        }
     }
-    *(a9TimerPtr + 3) = fBit;
+    *(a9TimerPtr + 3) = 1;
+    return 0;
 }
 
 
