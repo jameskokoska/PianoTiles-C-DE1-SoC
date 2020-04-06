@@ -1040,6 +1040,12 @@ int main(void) {
                     drawBox(10,10,39,6,0xF800);
                     if(animateX>=widthGlobal){
                         drawEndPage();
+
+                        drawText(25, 58, " \0");
+                        drawText(25+10*1, 58, " \0");
+                        drawText(25+10*2, 58, " \0");
+                        drawText(25+10*3, 58, " \0");
+                        
                         int offset = 0;
                         if (score==0){
                             drawSegNum(0,offset,0,0x0000);
