@@ -23,6 +23,6 @@
 - Select with hitting [2] on title screen
 - Tap as many tiles as you can
 - Each coloured tile is special
-(/assets/legend.png)
+![Legend](/assets/legend.png)
 - Given 30 seconds
 - Timer shown on HEX
