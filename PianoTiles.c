@@ -927,9 +927,7 @@ int main(void) {
                         keyPushedStore = 1;
                         score++;
                     }
-                    if (tilesSurprise[currentTile]==1 && gamemode == 2){
-                        DYBox = 60;
-                    } else if(keyPushedStore){
+                    if(keyPushedStore){
                         DYBox = 10;
                     }
                 }
@@ -983,8 +981,6 @@ int main(void) {
                     clearScreen();
                     clearOnce++;
                     animateTile = true;
-                } else if (gamemode==2&&!gameEnd&&!animateTile){
-                    drawBox(80, 240-60,40*4,60,0xFFFF);
                 } else if (!gameEnd&&!animateTile){
                     drawBox(80, 240-20,40*4,20,0xFFFF);
                 }
