@@ -966,6 +966,10 @@ int main(void) {
                         firstPress = false;
                     } 
                     if (gameOverWait == true){
+                        drawText(25, 58, " \0");
+                        drawText(25+10*1, 58, " \0");
+                        drawText(25+10*2, 58, " \0");
+                        drawText(25+10*3, 58, " \0");
                         gameOver = true;
                     }
                 }
