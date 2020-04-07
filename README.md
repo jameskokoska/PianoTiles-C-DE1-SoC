@@ -22,7 +22,18 @@
 ##Game mode 2: Frenzy##
 - Select with hitting [2] on title screen
 - Tap as many tiles as you can
-- Each coloured tile is special\n
-![Legend](/assets/legend.png)
+- Each coloured tile is special
+- ![Legend](/assets/legend.png)
 - Given 30 seconds
 - Timer shown on HEX
+##Images##
+- Title screen
+- ![Title](/assets/title.png)
+- Game mode 1 game screen
+- ![Gamemode 1](/assets/mode1.png)
+- Game mode 2 game screen
+- ![Gamemode 2](/assets/mode2.png)
+- Game over screen
+-  ![Game over](/assets/gameover.png)
+- Highscores screen
+- ![Highscores](/assets/highscores.png)
