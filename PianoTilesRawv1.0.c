@@ -1,4 +1,3 @@
-/*Initial release, removed splash screens to make code readable on GitHub*/
 unsigned int titlePage[] = {};
 
 unsigned int endPage[] = {};
@@ -51,7 +50,7 @@ int* randomColumn(){
 int* randomSurprise(){
     static int array[100];
     for (int i=0; i<100; i++){
-        if(rand() % 2 == 1){
+        if(rand() % 2 == 1){  
             array[i] = rand() % 4+1;
         } else {
             array[i] = 0;
@@ -170,7 +169,7 @@ int main(void) {
                 }
                 
 
-                while((keyPushed != 0x8015 && keyPushed != 0x801d && keyPushed != 0x8024 && keyPushed != 0x802d) && !gameEnd) {
+                while((keyPushed != 0x8015 && keyPushed != 0x801d && keyPushed != 0x8024 && keyPushed != 0x802d && keyPushed != 0x8016 && keyPushed != 0x801e) && !gameEnd) {
                     keyPushed = *KeyboardPointer;
                     if(animate > 3) {
                          //clears the existing inputs in the FIFO by reading them
