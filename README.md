@@ -22,7 +22,7 @@
 ##Game mode 2: Frenzy##
 - Select with hitting [2] on title screen
 - Tap as many tiles as you can
-- Each coloured tile is special
+- Each coloured tile is special\n
 ![Legend](/assets/legend.png)
 - Given 30 seconds
 - Timer shown on HEX
