@@ -1,6 +1,6 @@
 # PianoTiles-C-DE1-SoC
 - Optimized for https://cpulator.01xz.net/?sys=arm-de1soc
-- Can also be run on a De1-SoC board
+- Can also be run on a DE1-SoC board
 ## Features
 - Title screen
 - Game mode selection
