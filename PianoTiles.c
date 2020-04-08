@@ -852,6 +852,7 @@ int main(void) {
 
         pixelBufferStart = *pixelCtrlPtr;
         clearScreen(); // pixel_buffer_start points to the pixel buffer
+        pixelBufferStart = *(pixelCtrlPtr + 1);
         drawTitlePage();
         /* now, swap the front/back buffers, to set the front buffer location */
         waitForVsync();
