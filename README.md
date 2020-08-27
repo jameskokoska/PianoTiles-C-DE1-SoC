@@ -27,6 +27,7 @@
 - Given 30 seconds
 - Timer shown on HEX
 ## Images
+<<<<<<< HEAD
 - Title screen
 - ![Title](/assets/title.png)
 - Game mode 1 game screen
@@ -37,3 +38,13 @@
 - ![Game over](/assets/gameover.png)
 - Highscores screen
 - ![Highscores](/assets/highscores.png)
+=======
+| ![Title](/assets/title.png)  | ![Gamemode 1](/assets/mode1.png) |
+| ------------- | ------------- |
+| Title screen  |  Game mode 1 game screen |
+| ![Gamemode 2](/assets/mode2.png) | ![Game over](/assets/gameover.png) |
+| Game mode 2 game screen  | Game over screen  |
+| ![Highscores](/assets/highscores.png) | 
+| Highscores screen  |
+
+>>>>>>> 1379ba9... updated readme
